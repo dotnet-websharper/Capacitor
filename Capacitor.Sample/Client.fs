@@ -19,7 +19,7 @@ module Client =
             "Paul"
         ]
 
-    let takePicture ()  = promise {
+    let takePicture () = promise {
         let options = ImageOptions(CameraResultType.Base64)
         let! image = Capacitor.Camera.GetPhoto(options)
         return image

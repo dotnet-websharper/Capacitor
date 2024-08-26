@@ -227,7 +227,7 @@ module Definition =
                 ]
             }
 
-        let CapacitorBarcodeScannerTypeHint = 
+        let CapacitorBarcodeScannerTypeHint =
             Pattern.EnumInlines "CapacitorBarcodeScannerTypeHint" [
                     "QR_CODE", "0"
                     "AZTEC", "1"
@@ -583,6 +583,488 @@ module Definition =
                 |> WithComment "eventName is accel"
                 "addListener" => T<string>?evenName * OrientationListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "eventName is orientation"
+            ]
+
+    [<AutoOpen>]
+    module Clipboard = 
+        let WriteOptions =
+            Pattern.Config "WriteOptions" {
+                Required = []
+                Optional = [
+                    "string", T<string>
+                    "image", T<string>
+                    "url", T<string>
+                    "label", T<string>
+                ]
+            }
+
+        let ReadResult =
+            Pattern.Config "ReadResult" {
+                Required = []
+                Optional = [
+                    "value", T<string>
+                    "type", T<string>
+                ]
+            }
+
+        let ClipboardPlugin = 
+            Class "Clipboard" 
+            |+> Instance [
+                "write" => WriteOptions?options ^-> T<Promise<unit>>
+                "read" => T<unit> ^-> T<Promise<_>>[ReadResult]
+            ]
+
+    [<AutoOpen>]
+    module Device = 
+        let OperatingSystem = 
+            Pattern.EnumStrings "OperatingSystem" [
+                "ios"
+                "android"
+                "windows"
+                "mac"
+                "unknown"
+            ]
+
+        let DeviceId =
+            Pattern.Config "DeviceId" {
+                Required = []
+                Optional = [
+                    "identifier", T<string>
+                ]
+            }
+
+        let DevicePlatform = 
+            Pattern.EnumStrings "DevicePlatform" [
+                "ios"
+                "android"
+                "web"
+            ]
+
+        let DeviceInfo =
+            Pattern.Config "DeviceInfo" {
+                Required = []
+                Optional = [
+                    "name", T<string>
+                    "model", T<string>
+                    "platform", DevicePlatform.Type
+                    "operatingSystem", OperatingSystem.Type
+                    "osVersion", T<string>
+                    "iOSVersion", T<int>
+                    "androidSDKVersion", T<int>
+                    "manufacturer", T<string>
+                    "isVirtual", T<bool>
+                    "memUsed", T<int>
+                    "diskFree", T<int>
+                    "diskTotal", T<int>
+                    "realDiskFree", T<int>
+                    "realDiskTotal", T<int>
+                    "webViewVersion", T<string>
+                ]
+            }
+
+        let BatteryInfo =
+            Pattern.Config "BatteryInfo" {
+                Required = []
+                Optional = [
+                    "batteryLevel", T<int>
+                    "isCharging", T<bool>
+                ]
+            }
+
+        let GetLanguageCodeResult =
+            Pattern.Config "GetLanguageCodeResult" {
+                Required = []
+                Optional = [
+                    "value", T<string>
+                ]
+            }
+
+        let LanguageTag =
+            Pattern.Config "LanguageTag" {
+                Required = []
+                Optional = [
+                    "value", T<string>
+                ]
+            }
+
+        let DevicePlugin = 
+            Class "DevicePlugin"
+            |+> Instance [
+                "getInfo" => T<unit> ^-> T<Promise<_>>[DeviceInfo]
+                "getBatteryInfo" => T<unit> ^-> T<Promise<_>>[BatteryInfo]
+                "getLanguageCode" => T<unit> ^-> T<Promise<_>>[GetLanguageCodeResult]
+                "getLanguageTag" => T<unit> ^-> T<Promise<_>>[LanguageTag]
+            ]
+
+    [<AutoOpen>]
+    module Dialog = 
+        let AlertOptions =
+            Pattern.Config "AlertOptions" {
+                Required = []
+                Optional = [
+                    "title", T<string>
+                    "message", T<string>
+                    "buttonTitle", T<string>
+                ]
+            }
+
+        let PromptResult =
+            Pattern.Config "PromptResult" {
+                Required = []
+                Optional = [
+                    "value", T<string>
+                    "cancelled", T<bool>
+                ]
+            }
+
+        let PromptOptions =
+            Pattern.Config "PromptOptions" {
+                Required = []
+                Optional = [
+                    "title", T<string>
+                    "message", T<string>
+                    "okButtonTitle", T<string>
+                    "cancelButtonTitle", T<string>
+                    "inputPlaceholder", T<string>
+                    "inputText", T<string>
+                ]
+            }
+
+        let ConfirmResult =
+            Pattern.Config "ConfirmResult" {
+                Required = []
+                Optional = [
+                    "value", T<bool>
+                ]
+            }
+
+        let ConfirmOptions =
+            Pattern.Config "ConfirmOptions" {
+                Required = []
+                Optional = [
+                    "title", T<string>
+                    "message", T<string>
+                    "okButtonTitle", T<string>
+                    "cancelButtonTitle", T<string>
+                ]
+            }
+
+        let DialogPlugin = 
+            Class "DialogPlugin" 
+            |+> Instance [
+                "alert" =>  AlertOptions?options ^-> T<Promise<unit>>
+                "prompt" =>  PromptOptions?options ^-> T<Promise<_>>[PromptResult]
+                "confirm" =>  ConfirmOptions?options ^-> T<Promise<_>>[ConfirmResult]
+            ]
+
+    [<AutoOpen>]
+    module Filesystem =
+        let Directory = 
+            Pattern.EnumStrings "Directory" [
+                "Documents"
+                "Data"
+                "Library"
+                "Cache"
+                "External"
+                "ExternalStorage"
+            ]
+
+        let Encoding = 
+            Pattern.EnumStrings "Encoding" [
+                "UTF8"
+                "ASCII"
+                "UTF16"
+            ]
+
+        let CopyOptions =
+            Pattern.Config "CopyOptions" {
+                Required = []
+                Optional = [
+                    "from", T<string>
+                    "to", T<string>
+                    "directory", Directory.Type
+                    "toDirectory", Directory.Type
+                ]
+            }
+
+        let RenameOptions = CopyOptions.Type
+
+        let ProgressStatus = 
+            Pattern.Config "ProgressStatus" {
+                Required = []
+                Optional = [
+                    "url", T<string>
+                    "bytes", T<int>
+                    "contentLength", T<int>
+                ]
+            }
+
+        let ProgressListener = 
+            Pattern.Config "ProgressListener" {
+                Required = []
+                Optional = [
+                    "progress", ProgressStatus ^-> T<unit>
+                ]
+            }
+
+        let ReadFileResult =
+            Pattern.Config "ReadFileResult" {
+                Required = []
+                Optional = [
+                    "data", T<string> * !?T<Blob>
+                ]
+            }
+
+        let ReadFileOptions = 
+            Pattern.Config "ReadFileOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string>
+                    "directory", Directory.Type
+                    "encoding", Directory.Type
+                ]
+            }
+
+        let WriteFileResult = 
+            Pattern.Config "WriteFileResult" {
+                Required = []
+                Optional = [
+                    "uri", T<string> 
+                ]
+            }
+
+        let WriteFileOptions = 
+            Pattern.Config "WriteFileOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "data", T<string> * !?T<Blob>
+                    "directory", Directory.Type
+                    "encoding", Encoding.Type
+                    "recursive", T<bool> 
+                ]
+            }
+
+        let AppendFileOptions =     
+            Pattern.Config "AppendFileOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "data", T<string>
+                    "directory", Directory.Type
+                    "encoding", Encoding.Type
+                ]
+            }
+
+        let DeleteFileOptions =     
+            Pattern.Config "DeleteFileOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "directory", Directory.Type
+                ]
+            }
+
+        let MkdirOptions =     
+            Pattern.Config "MkdirOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "directory", Directory.Type
+                    "recursive", T<bool> 
+                ]
+            }
+
+        let RmdirOptions =     
+            Pattern.Config "RmdirOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "directory", Directory.Type
+                    "recursive", T<bool> 
+                ]
+            }
+
+        let FileType = 
+            Pattern.EnumStrings "FileType" [
+                "file"
+                "directory"
+            ]
+
+        let FileInfo = 
+            Pattern.Config "FileInfo" {
+                Required = []
+                Optional = [
+                    "name", T<string> 
+                    "type", FileType.Type
+                    "size", T<int> 
+                    "ctime", T<int> 
+                    "mtime", T<int> 
+                    "uri", T<string> 
+                ]
+            }
+
+        let ReaddirOptions = 
+            Pattern.Config "ReaddirOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "directory", Directory.Type
+                ]
+            }
+
+        let GetUriResult = 
+            Pattern.Config "GetUriResult" {
+                Required = []
+                Optional = [
+                    "uri", T<string> 
+                ]
+            }
+
+        let GetUriOptions = 
+            Pattern.Config "GetUriOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "directory", Directory.Type 
+                ]
+            }
+
+        let StatResult = 
+            Pattern.Config "StatResult" {
+                Required = []
+                Optional = [
+                    "type", FileType.Type
+                    "size", T<int> 
+                    "ctime", T<int> 
+                    "mtime", T<int> 
+                    "uri", T<string> 
+                ]
+            }
+
+        let StatOptions = 
+            Pattern.Config "StatOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "directory", Directory.Type 
+                ]
+            }
+
+        let CopyResult = 
+            Pattern.Config "CopyResult" {
+                Required = []
+                Optional = [
+                    "uri", T<string> 
+                ]
+            }
+
+        let PermissionStatus = 
+            Pattern.Config "PermissionStatus" {
+                Required = []
+                Optional = [
+                    "publicStorage", PermissionState.Type
+                ]
+            }
+
+        let DownloadFileResult = 
+            Pattern.Config "DownloadFileResult" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "blob", T<Blob> 
+                ]
+            }
+
+        let DownloadFileOptions = 
+            Pattern.Config "DownloadFileOptions" {
+                Required = []
+                Optional = [
+                    "path", T<string> 
+                    "directory", Directory.Type
+                    "progress", T<bool> 
+                    "recursive", T<bool> 
+                ]
+            }
+
+        let ReaddirResult = 
+            Pattern.Config "ReaddirResult" {
+                Required = []
+                Optional = [
+                    "files", !| FileInfo
+                ]
+            }
+
+        let FilesystemPlugin = 
+            Class "Filesystem" 
+            |+> Instance [
+                "readFile" => ReadFileOptions?options ^-> T<Promise<_>>[ReadFileResult]
+                "writeFile" => WriteFileOptions?options ^-> T<Promise<_>>[WriteFileResult]
+                "appendFile" => AppendFileOptions?options ^-> T<Promise<unit>>
+                "deleteFile" => DeleteFileOptions?options ^-> T<Promise<unit>>
+                "mkdir" => MkdirOptions?options ^-> T<Promise<unit>>
+                "rmdir" => RmdirOptions?options ^-> T<Promise<unit>>
+                "readdir" => ReaddirOptions?options ^-> T<Promise<_>>[ReaddirResult]
+                "getUri" => GetUriOptions?options ^-> T<Promise<_>>[GetUriResult]
+                "stat" => StatOptions?options ^-> T<Promise<_>>[StatResult]
+                "rename" => RenameOptions?options ^-> T<Promise<unit>>
+                "copy" => CopyOptions?options ^-> T<Promise<_>>[CopyResult]
+                "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
+                "requestPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
+                "downloadFile" => DownloadFileOptions?options ^-> T<Promise<_>>[DownloadFileResult]
+                "addListener" => T<string>?eventName * ProgressListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module Haptics = 
+        let ImpactStyle =
+            Pattern.EnumStrings "ImpactStyle" [
+                "Heavy"
+                "Medium"
+                "Light"
+            ]
+
+        let NotificationType =
+            Pattern.EnumStrings "NotificationType" [
+                "Success"
+                "Warning"
+                "Error"
+            ]
+
+        let ImpactOptions = 
+            Pattern.Config "ImpactOptions" {
+                Required = []
+                Optional = [
+                    "style", ImpactStyle.Type
+                ]
+            }
+        
+        let NotificationOptions = 
+            Pattern.Config "NotificationOptions" {
+                Required = []
+                Optional = [
+                    "type", NotificationType.Type
+                ]
+            }
+
+        let VibrateOptions = 
+            Pattern.Config "VibrateOptions" {
+                Required = []
+                Optional = [
+                    "duration", T<int>
+                ]
+            }
+
+        let HapticsPlugin = 
+            Class "HapticsPlugin" 
+            |+> Instance [
+                "impact" => ImpactOptions ?options ^-> T<Promise<unit>>
+                "notification" => NotificationOptions?options ^-> T<Promise<unit>>
+                "vibrate" => VibrateOptions?options ^-> T<Promise<unit>>
+                "selectionStart" => T<unit> ^-> T<Promise<unit>>
+                "selectionChanged" => T<unit> ^-> T<Promise<unit>>
+                "selectionEnd" => T<unit> ^-> T<Promise<unit>>
             ]
 
     let Capacitor =

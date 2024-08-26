@@ -1,0 +1,10 @@
+2024-08-27 18:09:39.5647|DEBUG|Program|location of wsfscservice is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
+2024-08-27 18:09:39.5647|DEBUG|Program|pipename is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
+2024-08-27 18:09:39.5647|DEBUG|Program|Compiling D:\WebSharper\Capacitor\Capacitor\WebSharper.Capacitor.fsproj
+2024-08-27 18:09:40.5166|TRACE|Program|Server sends: n: F# compilation: 00:00:00.9636604
+2024-08-27 18:09:40.8983|TRACE|Program|Server sends: n: Loading IExtension implementation: 00:00:00.3825992
+2024-08-27 18:09:41.1849|TRACE|Program|Server sends: n: Getting Assembly definition: 00:00:00.2865886
+2024-08-27 18:09:41.4840|TRACE|Program|Server sends: n: Built assembly: 00:00:00.2990358
+2024-08-27 18:09:41.5092|TRACE|Program|Server sends: n: Creating WebSharper metadata: 00:00:00.0251977
+2024-08-27 18:09:41.5253|TRACE|Program|Server sends: n: Writing final dll: 00:00:00.0160736
+2024-08-27 18:09:41.5253|TRACE|Program|Server sends: x: 0
