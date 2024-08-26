@@ -585,56 +585,13 @@ module Definition =
                 |> WithComment "eventName is orientation"
             ]
 
-    [<AutoOpen>]
-    module Clipboard = 
-        let WriteOptions = 
-            Pattern.Config "WriteOptions" {
-                Required = []
-                Optional = [
-                    "string", T<string>
-                    "image", T<string>
-                    "url", T<string>
-                    "label", T<string>
-                ]
-            }
-
-        let ReadResult = 
-            Pattern.Config "ReadResult" {
-                Required = []
-                Optional = [
-                    "value", T<string>
-                    "type", T<string>
-                ]
-            }
-
-        let ClipboardPlugin = 
-            Class "ClipboardPlugin"
-            |+> Instance [
-                "write" => WriteOptions?options ^-> T<Promise<unit>>
-                "read" => T<unit> ^-> T<Promise<_>>[ReadResult] 
-            ]
-
-    [<AutoOpen>]
-    module Cookies = 
-        let HttpCookie =    
-            Pattern.Config "HttpCookie" {
-                Required = []
-                Optional = [
-                    "url", T<string>
-                    "key", T<string>
-                    "value", T<string>
-                ]
-            }
-
-        let HttpCookieExtras = 
-            Pattern.Config "HttpCookieExtras" {
-                Required = []
-                Optional = []
-            }
-
     let Capacitor =
         Class "Capacitor"
         |+> Static [
+            "Haptics" =? HapticsPlugin
+            |> Import "Haptics" "@capacitor/haptics"
+            "Filesystem" =? FilesystemPlugin
+            |> Import "Filesystem" "@capacitor/filesystem"
             "Camera" =? CameraPlugin
             |> Import "Camera" "@capacitor/camera"
             "Motion" =? MotionPlugin
@@ -653,11 +610,60 @@ module Definition =
             |> Import "Browser" "@capacitor/browser"
             "Clipboard" =? ClipboardPlugin
             |> Import "Clipboard" "@capacitor/clipboard"
+            "Device" =? DevicePlugin
+            |> Import "Device" "@capacitor/device"
+            "Dialog" =? DialogPlugin
+            |> Import "Dialog" "@capacitor/dialog"
         ]
 
     let Assembly =
         Assembly [
             Namespace "WebSharper.Capacitor" [
+                ImpactStyle
+                NotificationType
+                NotificationOptions
+                Encoding
+                FileInfo
+                FileType
+                Directory
+                ProgressStatus
+                ImpactOptions
+                VibrateOptions
+                ReadFileOptions
+                ReadFileResult
+                WriteFileOptions
+                WriteFileResult
+                AppendFileOptions
+                DeleteFileOptions
+                MkdirOptions
+                RmdirOptions
+                ReaddirOptions
+                ReaddirResult
+                GetUriOptions
+                GetUriResult
+                StatOptions
+                StatResult
+                CopyResult
+                CopyOptions
+                DownloadFileOptions
+                DownloadFileResult
+                ProgressListener
+                HapticsPlugin
+                FilesystemPlugin
+                AlertOptions
+                PromptOptions
+                PromptResult
+                ConfirmOptions
+                ConfirmResult
+                DialogPlugin
+                LanguageTag
+                GetLanguageCodeResult
+                BatteryInfo
+                DeviceInfo
+                DeviceId
+                OperatingSystem
+                DevicePlatform
+                DevicePlugin
                 WriteOptions
                 ReadResult
                 OpenOptions
@@ -727,6 +733,9 @@ module Definition =
             ] 
             Namespace "WebSharper.Capacitor.Geolocation" [
                 Geolocation.PermissionStatus
+            ]
+            Namespace "WebSharper.Capacitor.Filesystem" [
+                Filesystem.PermissionStatus
             ]
         ]
 

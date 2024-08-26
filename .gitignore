@@ -12,13 +12,7 @@
 /paket-files/
 .vscode/
 .idea/
-<<<<<<< HEAD
-*.user
-websharper.log
-/Capacitor*/vite*
-=======
 *.userwebsharper.log
->>>>>>> 285c0ac (Update .gitignore)
 /Capacitor*/bin
 /Capacitor*/obj
 /Capacitor*/node*
