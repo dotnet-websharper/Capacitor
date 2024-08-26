@@ -22,6 +22,7 @@ jobs:
       # Install project dependencies, including Capacitor
       - name: Install dependencies
         run: npm install
+        working-directory: ./Capcitor.Sample
 
       # Install the latest LTS Java JDK 17 (the current LTS as of 2024)
       - name: Set up JDK 17
@@ -40,22 +41,23 @@ jobs:
 
       - name: Build app
         run: |
-          cd Capacitor.Sample
           dotnet build
           npx vite build
+        working-directory: ./Capcitor.Sample
 
       # Add the Android platform to the Capacitor project
       - name: Add Android platform
         run: |
           npx cap add android
           npx cap sync
+        working-directory: ./Capcitor.Sample
 
       # Build the APK using Gradle
       - name: Build Android APK
         run: |
-          cd Capacitor.Sample
           cd android
           ./gradlew assembleDebug
+        working-directory: ./Capcitor.Sample
 
       - name: List files
         run: ls -aR > filelist.txt
