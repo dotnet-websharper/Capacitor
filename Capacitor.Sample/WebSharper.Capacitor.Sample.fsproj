@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Capacitor\Capacitor.fsproj" />
+    <ProjectReference Include="..\Capacitor\WebSharper.Capacitor.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
