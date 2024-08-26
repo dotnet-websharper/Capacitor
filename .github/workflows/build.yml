@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -73,8 +73,8 @@ jobs:
           ./gradlew assembleDebug
         working-directory: ./Capacitor.Sample
 
-      - name: List files
-        run: ls -aR > filelist.txt
+      # - name: List files
+      #   run: ls -aR > filelist.txt
 
       # Upload the APK as a build artifact
       - name: Upload APK
@@ -83,8 +83,8 @@ jobs:
           name: app-debug.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload Filelist
-        uses: actions/upload-artifact@v3
-        with:
-          name: filelist.txt
-          path: filelist.txt
+      # - name: Upload Filelist
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: filelist.txt
+      #     path: filelist.txt
