@@ -12,7 +12,8 @@
 /paket-files/
 .vscode/
 .idea/
-*.userwebsharper.log
+*.user
+websharper.log
 /Capacitor*/vite*
 /Capacitor*/bin
 /Capacitor*/obj
