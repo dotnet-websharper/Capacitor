@@ -1,13 +1,10 @@
-<<<<<<< HEAD
 ﻿{
   "$schema": "https://websharper.com/wsconfig.schema.json",
   "project": "spa",
   "outputDir": "wwwroot/Content"
 }
-=======
 ﻿{
   "$schema": "https://websharper.com/wsconfig.schema.json",
   "project": "spa",
   "outputDir": "wwwroot/Content"
 }
->>>>>>> 285c0ac (Update .gitignore)

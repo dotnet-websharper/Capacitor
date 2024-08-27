@@ -614,6 +614,24 @@ module Definition =
                 "read" => T<unit> ^-> T<Promise<_>>[ReadResult] 
             ]
 
+    [<AutoOpen>]
+    module Cookies = 
+        let HttpCookie =    
+            Pattern.Config "HttpCookie" {
+                Required = []
+                Optional = [
+                    "url", T<string>
+                    "key", T<string>
+                    "value", T<string>
+                ]
+            }
+
+        let HttpCookieExtras = 
+            Pattern.Config "HttpCookieExtras" {
+                Required = []
+                Optional = []
+            }
+
     let Capacitor =
         Class "Capacitor"
         |+> Static [

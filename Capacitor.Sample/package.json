@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2",
+    "eslint": "^9.9.1",
     "vite": "^5.4.2"
   }
 }
