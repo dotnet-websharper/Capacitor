@@ -5,6 +5,8 @@ open WebSharper.JavaScript
 open WebSharper.InterfaceGenerator
 
 module Definition =
+    let ListenFunctionType = T<unit> ^-> T<unit>
+
     [<AutoOpen>]
     module Core = 
         let PermissionState =
@@ -21,15 +23,21 @@ module Definition =
                 Optional = [
                     "remove", T<unit> ^-> T<Promise<unit>>
                 ]
-            }
+            }            
+
+        let PresentationStyle = 
+            Pattern.EnumStrings "PresentationStyle" [
+                "fullscreen"
+                "popover"
+            ]
 
     [<AutoOpen>]
     module ActionSheet = 
         let ActionSheetButtonStyle =
-            Pattern.EnumStrings "ActionSheetButtonStyle" [
-                "DEFAULT"
-                "DESTRUCTIVE"
-                "CANCEL"
+            Pattern.EnumInlines "ActionSheetButtonStyle" [
+                "Default", "DEFAULT"
+                "Destructive", "DESTRUCTIVE"
+                "Cancel", "CANCEL"
             ]
 
         let ActionSheetButton =
@@ -56,8 +64,8 @@ module Definition =
                 Optional = []
             }
 
-        let ActionSheet = 
-            Class "ActionSheet" 
+        let ActionSheetPlugin = 
+            Class "ActionSheetPlugin " 
             |+> Instance [
                 "showActions" => ShowActionsOptions?options ^-> T<Promise<_>>[ShowActionsResult]
             ]
@@ -88,8 +96,8 @@ module Definition =
                 Optional = []
             }
 
-        let AppLauncher = 
-            Class "AppLauncher" 
+        let AppLauncherPlugin  = 
+            Class "AppLauncherPlugin " 
             |+> Instance [
                 "canOpenUrl" => CanOpenURLOptions?options ^-> T<Promise<_>>[CanOpenURLResult]
                 "openUrl" => OpenURLOptions?options ^-> T<Promise<_>>[OpenURLResult]
@@ -172,10 +180,8 @@ module Definition =
                 Optional = ["event", BackButtonListenerEvent.Type ^-> T<unit>]
             }
 
-        let App = 
-            let ListenFunctionType = T<unit> ^-> T<unit>
-
-            Class "App" 
+        let AppPlugin = 
+            Class "AppPlugin" 
             |+> Instance [
                 "exitApp" => T<unit> ^-> T<Promise<unit>>
                 "getInfo" => T<unit> ^-> T<Promise<_>>[AppInfo]
@@ -192,6 +198,115 @@ module Definition =
                 |> WithComment "eventName is appRestoredResult"
                 "addListener" => T<string>?eventName * BackButtonListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "eventName is backButton"
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module BarcodeScanner =
+        let CapacitorBarcodeScannerCameraDirection = 
+            Pattern.EnumInlines "CapacitorBarcodeScannerCameraDirection" [
+                "BACK", "1"
+                "FRONT", "2"
+            ]
+
+        let CapacitorBarcodeScannerScanOrientation = 
+            Pattern.EnumInlines "CapacitorBarcodeScannerScanOrientation" [
+               "PORTRAIT", "1"
+               "LANDSCAPE", "2"
+               "ADAPTIVE", "3" 
+            ]
+
+        let CapacitorBarcodeScannerAndroidScanningLibrary = 
+            Pattern.EnumStrings "CapacitorBarcodeScannerAndroidScanningLibrary" ["zxing"; "mlkit"]
+
+        let CapacitorBarcodeScannerScanResult = 
+            Pattern.Config "CapacitorBarcodeScannerScanResult" {
+                Required = []
+                Optional = [
+                    "ScanResult", T<string>
+                ]
+            }
+
+        let CapacitorBarcodeScannerTypeHint = 
+            Pattern.EnumInlines "CapacitorBarcodeScannerTypeHint" [
+                    "QR_CODE", "0"
+                    "AZTEC", "1"
+                    "CODABAR", "2"
+                    "CODE_39", "3"
+                    "CODE_93", "4"
+                    "CODE_128", "5"
+                    "DATA_MATRIX", "6"
+                    "MAXICODE", "7"
+                    "ITF", "8"
+                    "EAN_13", "9"
+                    "EAN_8", "10"
+                    "PDF_417", "11"
+                    "RSS_14", "12"
+                    "RSS_EXPANDED", "13"
+                    "UPC_A", "14"
+                    "UPC_E", "15"
+                    "UPC_EAN_EXTENSION", "16"
+                    "ALL", "17"
+                ]
+
+        let AndroidScanningLibrary = 
+            Pattern.Config "AndroidScanningLibrary" {
+                Required = []
+                Optional = ["scanningLibrary", CapacitorBarcodeScannerAndroidScanningLibrary.Type]
+            }
+
+        let WebOptions = 
+            Pattern.Config "WebOptions" {
+                Required = []
+                Optional = [
+                    "showCameraSelection", T<bool>
+                    "scannerFPS", T<int>
+                ]
+            }
+
+        let CapacitorBarcodeScannerOptions = 
+            Pattern.Config "CapacitorBarcodeScannerOptions" {
+                Required = []
+                Optional = [
+                    "hint", CapacitorBarcodeScannerTypeHint.Type
+                    "scanInstructions", T<string>
+                    "scanButton", T<bool>
+                    "scanText", T<string>
+                    "cameraDirection", CapacitorBarcodeScannerCameraDirection.Type
+                    "scanOrientation", CapacitorBarcodeScannerScanOrientation.Type
+                    "android", AndroidScanningLibrary.Type
+                    "web", WebOptions.Type
+                ]
+            }
+
+        let BarcodeScannerPlugin = 
+            Class "BarcodeScannerPlugin" 
+            |+> Instance [
+                "scanBarcode" => CapacitorBarcodeScannerOptions?options ^-> T<Promise<_>>[CapacitorBarcodeScannerScanResult]
+            ]
+
+    [<AutoOpen>]
+    module Browser = 
+        let OpenOptions = 
+            Pattern.Config "OpenOptions" {
+                Required = []
+                Optional = [
+                    "url", T<string>
+                    "windowName", T<string>
+                    "toolbarColor", T<string>
+                    "presentationStyle", PresentationStyle.Type
+                    "width", T<int>
+                    "height", T<int>
+                ]
+            }
+
+        let BrowserPlugin = 
+            Class "BrowserPlugin" 
+            |+> Instance [
+                "open" => OpenOptions?options ^-> T<Promise<unit>>
+                "close" => T<unit> ^-> T<Promise<unit>>
+                "addListener" => T<string>?eventName * ListenFunctionType?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "eventName can be either browserFinished or browserPageLoaded"
                 "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
             ]
 
@@ -221,21 +336,15 @@ module Definition =
 
         let CameraSource = 
             Pattern.EnumStrings "CameraSource" [
-                "PROMPT"
-                "CAMERA"
-                "PHOTOS"
+                "Prompt"
+                "Camera"
+                "Photos"
             ]
 
         let CameraDirection = 
             Pattern.EnumStrings "CameraDirection" [
-                "REAR"
-                "FRONT"
-            ]
-
-        let CameraPresentationStyle = 
-            Pattern.EnumStrings "CameraPresentationStyle" [
-                "fullscreen"
-                "popover"
+                "Rear"
+                "Front"
             ]
     
         let ImageOptions = 
@@ -252,7 +361,7 @@ module Definition =
                     "correctOrientation", T<bool>
                     "source", CameraSource.Type
                     "direction", CameraDirection.Type
-                    "presentationStyle", CameraPresentationStyle.Type
+                    "presentationStyle", PresentationStyle.Type
                     "webUseInput", T<bool>
                     "promptLabelHeader", T<string>
                     "promptLabelCancel", T<string>
@@ -304,7 +413,7 @@ module Definition =
                     "width", T<int>
                     "height", T<int>
                     "correctOrientation", T<bool>
-                    "presentationStyle", CameraPresentationStyle.Type
+                    "presentationStyle", PresentationStyle.Type
                     "limit", T<int>
                 ]
             }
@@ -467,8 +576,8 @@ module Definition =
 
         let OrientationListenerEvent = RotationRate
 
-        let Motion = 
-            Class "Motion"
+        let MotionPlugin = 
+            Class "MotionPlugin"
             |+> Instance [
                 "addListener" => T<string>?eventName * AccelListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "eventName is accel"
@@ -476,23 +585,82 @@ module Definition =
                 |> WithComment "eventName is orientation"
             ]
 
+    [<AutoOpen>]
+    module Clipboard = 
+        let WriteOptions = 
+            Pattern.Config "WriteOptions" {
+                Required = []
+                Optional = [
+                    "string", T<string>
+                    "image", T<string>
+                    "url", T<string>
+                    "label", T<string>
+                ]
+            }
+
+        let ReadResult = 
+            Pattern.Config "ReadResult" {
+                Required = []
+                Optional = [
+                    "value", T<string>
+                    "type", T<string>
+                ]
+            }
+
+        let ClipboardPlugin = 
+            Class "ClipboardPlugin"
+            |+> Instance [
+                "write" => WriteOptions?options ^-> T<Promise<unit>>
+                "read" => T<unit> ^-> T<Promise<_>>[ReadResult] 
+            ]
+
     let Capacitor =
         Class "Capacitor"
         |+> Static [
             "Camera" =? CameraPlugin
             |> Import "Camera" "@capacitor/camera"
+            "Motion" =? MotionPlugin
+            |> Import "Motion" "@capacitor/motion"
+            "App" =? AppPlugin
+            |> Import "App" "@capacitor/app"
+            "ActionSheet" =? ActionSheetPlugin
+            |> Import "ActionSheet" "@capacitor/action-sheet"
+            "AppLauncher" =? AppLauncherPlugin
+            |> Import "AppLauncher" "@capacitor/app-launcher"
+            "Geolocation" =? GeolocationPlugin
+            |> Import "Geolocation" "@capacitor/geolocation"
+            "BarcodeScanner" =? BarcodeScannerPlugin
+            |> Import "BarcodeScanner" "@capacitor/barcode-scanner"
+            "Browser" =? BrowserPlugin
+            |> Import "Browser" "@capacitor/browser"
+            "Clipboard" =? ClipboardPlugin
+            |> Import "Clipboard" "@capacitor/clipboard"
         ]
 
     let Assembly =
         Assembly [
             Namespace "WebSharper.Capacitor" [
+                WriteOptions
+                ReadResult
+                OpenOptions
+                ClipboardPlugin
+                BrowserPlugin
+                CapacitorBarcodeScannerTypeHint
+                CapacitorBarcodeScannerAndroidScanningLibrary
+                CapacitorBarcodeScannerCameraDirection
+                CapacitorBarcodeScannerScanOrientation
+                AndroidScanningLibrary
+                WebOptions
+                CapacitorBarcodeScannerOptions
+                CapacitorBarcodeScannerScanResult
+                BarcodeScannerPlugin
                 Capacitor
                 CameraPlugin
                 GeolocationPlugin
-                ActionSheet
-                AppLauncher
-                App
-                Motion
+                ActionSheetPlugin
+                AppLauncherPlugin
+                AppPlugin
+                MotionPlugin
                 PluginListenerHandle
                 OrientationListener
                 RotationRate
@@ -532,7 +700,7 @@ module Definition =
                 GalleryPhotos
                 GalleryPhoto
                 GalleryImageOptions
-                CameraPresentationStyle
+                PresentationStyle
                 Photo
                 ImageOptions
                 CameraResultType
