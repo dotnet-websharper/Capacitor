@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2024-08-27 18:09:39.5647|DEBUG|Program|location of wsfscservice is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
 2024-08-27 18:09:39.5647|DEBUG|Program|pipename is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
 2024-08-27 18:09:39.5647|DEBUG|Program|Compiling D:\WebSharper\Capacitor\Capacitor\WebSharper.Capacitor.fsproj
@@ -8,3 +9,15 @@
 2024-08-27 18:09:41.5092|TRACE|Program|Server sends: n: Creating WebSharper metadata: 00:00:00.0251977
 2024-08-27 18:09:41.5253|TRACE|Program|Server sends: n: Writing final dll: 00:00:00.0160736
 2024-08-27 18:09:41.5253|TRACE|Program|Server sends: x: 0
+=======
+2024-08-27 12:34:15.9637|DEBUG|Program|location of wsfscservice is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
+2024-08-27 12:34:15.9637|DEBUG|Program|pipename is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
+2024-08-27 12:34:15.9637|DEBUG|Program|Compiling D:\WebSharper\Capacitor\Capacitor\WebSharper.Capacitor.fsproj
+2024-08-27 12:34:16.6310|TRACE|Program|Server sends: n: F# compilation: 00:00:00.6725286
+2024-08-27 12:34:16.8621|TRACE|Program|Server sends: n: Loading IExtension implementation: 00:00:00.2311848
+2024-08-27 12:34:16.8760|TRACE|Program|Server sends: n: Getting Assembly definition: 00:00:00.0138646
+2024-08-27 12:34:16.9940|TRACE|Program|Server sends: n: Built assembly: 00:00:00.1179973
+2024-08-27 12:34:17.2895|TRACE|Program|Server sends: n: Creating WebSharper metadata: 00:00:00.2955713
+2024-08-27 12:34:17.3348|TRACE|Program|Server sends: n: Writing final dll: 00:00:00.0452256
+2024-08-27 12:34:17.3384|TRACE|Program|Server sends: x: 0
+>>>>>>> 1482718 (Add Clipboard Plugin)
