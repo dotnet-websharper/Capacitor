@@ -227,11 +227,7 @@ module Definition =
                 ]
             }
 
-<<<<<<< HEAD
         let CapacitorBarcodeScannerTypeHint =
-=======
-        let CapacitorBarcodeScannerTypeHint = 
->>>>>>> 1482718 (Add Clipboard Plugin)
             Pattern.EnumInlines "CapacitorBarcodeScannerTypeHint" [
                     "QR_CODE", "0"
                     "AZTEC", "1"
@@ -591,11 +587,7 @@ module Definition =
 
     [<AutoOpen>]
     module Clipboard = 
-<<<<<<< HEAD
         let WriteOptions =
-=======
-        let WriteOptions = 
->>>>>>> 1482718 (Add Clipboard Plugin)
             Pattern.Config "WriteOptions" {
                 Required = []
                 Optional = [
@@ -606,11 +598,7 @@ module Definition =
                 ]
             }
 
-<<<<<<< HEAD
         let ReadResult =
-=======
-        let ReadResult = 
->>>>>>> 1482718 (Add Clipboard Plugin)
             Pattern.Config "ReadResult" {
                 Required = []
                 Optional = [
@@ -620,8 +608,7 @@ module Definition =
             }
 
         let ClipboardPlugin = 
-<<<<<<< HEAD
-            Class "Clipboard" 
+            Class "ClipboardPlugin" 
             |+> Instance [
                 "write" => WriteOptions?options ^-> T<Promise<unit>>
                 "read" => T<unit> ^-> T<Promise<_>>[ReadResult]
@@ -1078,12 +1065,6 @@ module Definition =
                 "selectionStart" => T<unit> ^-> T<Promise<unit>>
                 "selectionChanged" => T<unit> ^-> T<Promise<unit>>
                 "selectionEnd" => T<unit> ^-> T<Promise<unit>>
-=======
-            Class "ClipboardPlugin"
-            |+> Instance [
-                "write" => WriteOptions?options ^-> T<Promise<unit>>
-                "read" => T<unit> ^-> T<Promise<_>>[ReadResult] 
->>>>>>> 1482718 (Add Clipboard Plugin)
             ]
 
     let Capacitor =
@@ -1111,19 +1092,15 @@ module Definition =
             |> Import "Browser" "@capacitor/browser"
             "Clipboard" =? ClipboardPlugin
             |> Import "Clipboard" "@capacitor/clipboard"
-<<<<<<< HEAD
             "Device" =? DevicePlugin
             |> Import "Device" "@capacitor/device"
             "Dialog" =? DialogPlugin
             |> Import "Dialog" "@capacitor/dialog"
-=======
->>>>>>> 1482718 (Add Clipboard Plugin)
         ]
 
     let Assembly =
         Assembly [
             Namespace "WebSharper.Capacitor" [
-<<<<<<< HEAD
                 ImpactStyle
                 NotificationType
                 NotificationOptions
@@ -1169,8 +1146,6 @@ module Definition =
                 OperatingSystem
                 DevicePlatform
                 DevicePlugin
-=======
->>>>>>> 1482718 (Add Clipboard Plugin)
                 WriteOptions
                 ReadResult
                 OpenOptions
