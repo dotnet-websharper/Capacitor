@@ -17,7 +17,6 @@ websharper.log
 /Capacitor*/vite*
 /Capacitor*/bin
 /Capacitor*/obj
-/Capacitor*/android
 /Capacitor*/node*
 /Capacitor*/Properties
 /Capacitor*/wwwroot
