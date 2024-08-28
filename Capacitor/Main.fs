@@ -66,6 +66,7 @@ module Definition =
 
         let ActionSheetPlugin = 
             Class "ActionSheetPlugin " 
+            |=> Nested [ShowActionsOptions; ShowActionsResult; ActionSheetButton; ActionSheetButtonStyle]
             |+> Instance [
                 "showActions" => ShowActionsOptions?options ^-> T<Promise<_>>[ShowActionsResult]
             ]
@@ -98,6 +99,7 @@ module Definition =
 
         let AppLauncherPlugin  = 
             Class "AppLauncherPlugin " 
+            |=> Nested [OpenURLOptions; OpenURLResult; CanOpenURLOptions; CanOpenURLResult]
             |+> Instance [
                 "canOpenUrl" => CanOpenURLOptions?options ^-> T<Promise<_>>[CanOpenURLResult]
                 "openUrl" => OpenURLOptions?options ^-> T<Promise<_>>[OpenURLResult]
@@ -182,6 +184,11 @@ module Definition =
 
         let AppPlugin = 
             Class "AppPlugin" 
+            |=> Nested [
+                BackButtonListener; RestoredListener; URLOpenListener; StateChangeListener
+                BackButtonListenerEvent; RestoredListenerEvent; URLOpenListenerEvent
+                AppLaunchUrl; AppState; AppInfo; PluginListenerHandle
+            ]
             |+> Instance [
                 "exitApp" => T<unit> ^-> T<Promise<unit>>
                 "getInfo" => T<unit> ^-> T<Promise<_>>[AppInfo]
@@ -281,6 +288,11 @@ module Definition =
 
         let BarcodeScannerPlugin = 
             Class "BarcodeScannerPlugin" 
+            |=> Nested [
+                CapacitorBarcodeScannerOptions; WebOptions; AndroidScanningLibrary; CapacitorBarcodeScannerTypeHint
+                CapacitorBarcodeScannerScanResult; CapacitorBarcodeScannerAndroidScanningLibrary
+                CapacitorBarcodeScannerScanOrientation; CapacitorBarcodeScannerCameraDirection
+            ]
             |+> Instance [
                 "scanBarcode" => CapacitorBarcodeScannerOptions?options ^-> T<Promise<_>>[CapacitorBarcodeScannerScanResult]
             ]
@@ -302,6 +314,7 @@ module Definition =
 
         let BrowserPlugin = 
             Class "BrowserPlugin" 
+            |=> Nested [OpenOptions; PresentationStyle]
             |+> Instance [
                 "open" => OpenOptions?options ^-> T<Promise<unit>>
                 "close" => T<unit> ^-> T<Promise<unit>>
@@ -419,22 +432,26 @@ module Definition =
             }
 
         let PermissionStatus = 
-            Pattern.Config "Camera.PermissionStatus"{
-                Required = [
+            Pattern.Config "PermissionStatus"{
+                Required = []
+                Optional = [
                     "camera", CameraPermissionState.Type
                     "photos", CameraPermissionState.Type
                 ]
-                Optional = []
             }
 
         let CameraPluginPermissions = 
             Pattern.Config "CameraPluginPermissions" {
-                Required = ["permissions", !|CameraPermissionType]
-                Optional = []
+                Required = []
+                Optional = ["permissions", !| CameraPermissionType]
             }             
 
         let CameraPlugin = 
             Class "CameraPlugin" 
+            |=> Nested [
+                ImageOptions; Photo; GalleryImageOptions; GalleryPhotos; PermissionStatus; CameraPluginPermissions
+                CameraPermissionState; CameraPermissionType; CameraResultType; CameraSource; CameraDirection; GalleryPhoto
+            ]
             |+> Instance [
                 "getPhoto" => ImageOptions?options ^-> T<Promise<_>>[Photo]
                 "pickImages" => GalleryImageOptions?options ^-> T<Promise<_>>[GalleryPhotos]
@@ -517,6 +534,10 @@ module Definition =
 
         let GeolocationPlugin = 
             Class "GeolocationPlugin" 
+            |=> Nested [
+                GeolocationPluginPermissions; PermissionStatus; ClearWatchOptions; PositionOptions
+                GeolocationPermissionType; WatchPositionCallback; Position; Coordinates; PermissionState
+            ]
             |+> Instance [
                 "getCurrentPosition" => PositionOptions?options ^-> T<Promise<_>>[Position]
                 "watchPosition" => PositionOptions?options * WatchPositionCallback?callback ^-> T<Promise<_>>[CallbackID]
@@ -578,6 +599,9 @@ module Definition =
 
         let MotionPlugin = 
             Class "MotionPlugin"
+            |=> Nested [
+                OrientationListenerEvent; OrientationListener; AccelListener; AccelListenerEvent; Acceleration
+            ]
             |+> Instance [
                 "addListener" => T<string>?eventName * AccelListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "eventName is accel"
@@ -609,6 +633,7 @@ module Definition =
 
         let ClipboardPlugin = 
             Class "ClipboardPlugin" 
+            |=> Nested [ReadResult; WriteOptions]
             |+> Instance [
                 "write" => WriteOptions?options ^-> T<Promise<unit>>
                 "read" => T<unit> ^-> T<Promise<_>>[ReadResult]
@@ -689,6 +714,10 @@ module Definition =
 
         let DevicePlugin = 
             Class "DevicePlugin"
+            |=> Nested [
+                LanguageTag; GetLanguageCodeResult; BatteryInfo; DeviceInfo
+                DevicePlatform; DeviceId; OperatingSystem
+            ]
             |+> Instance [
                 "getInfo" => T<unit> ^-> T<Promise<_>>[DeviceInfo]
                 "getBatteryInfo" => T<unit> ^-> T<Promise<_>>[BatteryInfo]
@@ -751,6 +780,9 @@ module Definition =
 
         let DialogPlugin = 
             Class "DialogPlugin" 
+            |=> Nested [
+                ConfirmOptions; ConfirmResult; PromptOptions; PromptResult; AlertOptions
+            ]
             |+> Instance [
                 "alert" =>  AlertOptions?options ^-> T<Promise<unit>>
                 "prompt" =>  PromptOptions?options ^-> T<Promise<_>>[PromptResult]
@@ -997,6 +1029,13 @@ module Definition =
 
         let FilesystemPlugin = 
             Class "Filesystem" 
+            |=> Nested [
+                ReaddirResult; DownloadFileOptions; DownloadFileResult; PermissionStatus; CopyResult
+                StatOptions; StatResult; GetUriOptions; GetUriResult; ReaddirOptions; FileInfo
+                FileType; RmdirOptions; MkdirOptions; DeleteFileOptions; AppendFileOptions
+                WriteFileOptions; WriteFileResult; ProgressListener; ReadFileOptions 
+                ProgressStatus; CopyOptions; Encoding; ReadFileResult; Directory
+            ]
             |+> Instance [
                 "readFile" => ReadFileOptions?options ^-> T<Promise<_>>[ReadFileResult]
                 "writeFile" => WriteFileOptions?options ^-> T<Promise<_>>[WriteFileResult]
@@ -1058,6 +1097,9 @@ module Definition =
 
         let HapticsPlugin = 
             Class "HapticsPlugin" 
+            |=> Nested [
+                VibrateOptions; NotificationOptions; ImpactOptions; NotificationType; ImpactStyle                 
+            ]
             |+> Instance [
                 "impact" => ImpactOptions ?options ^-> T<Promise<unit>>
                 "notification" => NotificationOptions?options ^-> T<Promise<unit>>
@@ -1067,9 +1109,277 @@ module Definition =
                 "selectionEnd" => T<unit> ^-> T<Promise<unit>>
             ]
 
+    [<AutoOpen>]
+    module InAppBrowser = 
+        let ToolbarPosition = 
+            Pattern.EnumStrings "ToolbarPosition" [
+                "TOP"
+                "BOTTOM"
+            ]
+
+        let iOSViewStyle =
+            Pattern.EnumStrings "iOSViewStyle" [
+                "PAGE_SHEET"
+                "FORM_SHEET"
+                "FULL_SCREEN"
+            ]
+
+        let iOSAnimation = 
+            Pattern.EnumStrings "iOSAnimation" [
+                "FLIP_HORIZONTAL"
+                "CROSS_DISSOLVE"
+                "COVER_VERTICAL"
+            ]
+
+        let AndroidViewStyle = 
+            Pattern.EnumStrings "AndroidViewStyle" [
+                "BOTTOM_SHEET"
+                "FULL_SCREEN"
+            ]
+
+        let AndroidAnimation =  
+            Pattern.EnumStrings "AndroidAnimation" [
+                "FADE_IN"
+                "FADE_OUT"
+                "SLIDE_IN_LEFT"
+                "SLIDE_OUT_RIGHT"
+            ]
+
+        let DismissStyle =  
+            Pattern.EnumStrings "DismissStyle" [
+                "CLOSE"
+                "CANCEL"
+                "DONE"
+            ]
+
+        let AndroidWebViewOptions = 
+            Pattern.Config "AndroidWebViewOptions" {
+                Required = []
+                Optional = [
+                    "allowZoom", T<bool>
+                    "hardwareBack", T<bool>
+                    "pauseMedia", T<bool>
+                ]
+            }
+
+        let iOSWebViewOptions = 
+            Pattern.Config "iOSWebViewOptions" {
+                Required = []
+                Optional = [
+                    "allowOverScroll", T<bool>
+                    "enableViewportScale", T<bool>
+                    "allowInLineMediaPlayback", T<bool>
+                    "surpressIncrementalRendering", T<bool>
+                    "viewStyle", iOSViewStyle.Type
+                    "animationEffect", iOSAnimation.Type
+                ]
+            }
+
+        let AndroidBottomSheet = 
+            Pattern.Config "AndroidBottomSheet" {
+                Required = []
+                Optional = [
+                    "height", T<int>
+                    "isFixed", T<bool>
+                ]
+            }
+
+        let AndroidSystemBrowserOptions = 
+            Pattern.Config "AndroidSystemBrowserOptions" {
+                Required = []
+                Optional = [
+                    "showTitle", T<bool>
+                    "hideToolbarOnScroll", T<bool>
+                    "viewStyle", AndroidViewStyle.Type
+                    "bottomSheetOptions", AndroidBottomSheet.Type
+                    "startAnimation", AndroidAnimation.Type
+                    "exitAnimation", AndroidAnimation.Type
+                ]
+            }
+
+        let iOSSystemBrowserOptions = 
+            Pattern.Config "iOSSystemBrowserOptions" {
+                Required = []
+                Optional = [
+                    "closeButtonText", DismissStyle.Type
+                    "viewStyle", iOSViewStyle.Type
+                    "animationEffect", iOSAnimation.Type
+                    "enableBarsCollapsing", T<bool>
+                    "enableReadersMode", T<bool>
+                ]
+            }
+
+        let OpenInDefaultParameterModel = 
+            Pattern.Config "OpenInDefaultParameterModel" {
+                Required = []
+                Optional = [
+                    "url", T<string>
+                ]
+            }
+
+        let SystemBrowserOptions = 
+            Pattern.Config "SystemBrowserOptions" {
+                Required = []
+                Optional = [
+                    "android", AndroidSystemBrowserOptions.Type
+                    "iOS", iOSSystemBrowserOptions.Type
+                ]
+            }
+
+        let OpenInSystemBrowserParameterModel = 
+            Pattern.Config "OpenInSystemBrowserParameterModel" {
+                Required = []
+                Optional = [
+                    "options", SystemBrowserOptions.Type
+                ]
+            }
+
+        let WebViewOptions = 
+            Pattern.Config "WebViewOptions" {
+                Required = []
+                Optional = [
+                    "showURL", T<bool>
+                    "showToolbar", T<bool>
+                    "clearCache", T<bool>
+                    "clearSessionCache", T<bool>
+                    "mediaPlaybackRequiresUserAction", T<bool>
+                    "closeButtonText", T<string>
+                    "toolbarPosition", ToolbarPosition.Type
+                    "showNavigationButtons", T<bool>
+                    "leftToRight", T<bool>
+                    "customWebViewUserAgent", T<string >
+                    "android", AndroidWebViewOptions.Type
+                    "iOS", iOSWebViewOptions.Type
+                ]
+            }
+
+        let OpenInWebViewParameterModel = 
+            Pattern.Config "OpenInWebViewParameterModel" {
+                Required = []
+                Optional = [
+                    "options", WebViewOptions.Type
+                ]
+            }
+
+        let InAppBrowserPlugin = 
+            Class "InAppBrowserPlugin" 
+            |=> Nested [
+                OpenInWebViewParameterModel; WebViewOptions; OpenInSystemBrowserParameterModel
+                SystemBrowserOptions; OpenInDefaultParameterModel; iOSSystemBrowserOptions
+                AndroidSystemBrowserOptions; AndroidBottomSheet; iOSWebViewOptions
+                AndroidWebViewOptions; DismissStyle; AndroidAnimation; AndroidViewStyle
+                iOSAnimation; ToolbarPosition; iOSViewStyle
+            ]
+            |+> Instance [
+                "openInWebView" => OpenInWebViewParameterModel?model ^-> T<Promise<unit>>
+                "openInSystemBrowser" => OpenInSystemBrowserParameterModel?model ^-> T<Promise<unit>>
+                "openInExternalBrowser" => OpenInDefaultParameterModel?model ^-> T<Promise<unit>>
+                "close" => T<unit> ^-> T<Promise<unit>>
+                "addListener" => T<string>?eventName * ListenFunctionType?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                "removeAllListeners" => T<unit> ^-> T<unit>
+            ]
+ 
+    [<AutoOpen>]
+    module Keyboard =
+        let KeyboardStyle = 
+            Pattern.EnumStrings "KeyboardStyle" [
+                "Dark"
+                "Light"
+                "Default"
+            ]
+
+        let KeyboardResize = 
+            Pattern.EnumStrings "KeyboardResize" [
+                "Body"
+                "Ionic"
+                "Native"
+                "None"
+            ]
+
+        let KeyboardStyleOptions = 
+            Pattern.Config "KeyboardStyleOptions" {
+                Required = []
+                Optional = [
+                    "style", KeyboardStyle.Type
+                ]
+            }
+
+        let KeyboardResizeOptions = 
+            Pattern.Config "KeyboardResizeOptions" {
+                Required = []
+                Optional = [
+                    "mode", KeyboardResize.Type
+                ]
+            }
+
+        let KeyboardInfo = 
+            Pattern.Config "KeyboardInfo" {
+                Required = []
+                Optional = [
+                    "keyboardHeight", T<int>
+                ]
+            }
+
+        let ListenFuncKeyboardInfo = KeyboardInfo ^-> T<unit>
+
+        let ScrollOptions =
+            Pattern.Config "ScrollOptions" {
+                Required = [ "isDisabled", T<bool> ]
+                Optional = []
+            }
+
+        let AccessoryBarOptions =
+            Pattern.Config "AccessoryBarOptions" {
+                Required = [ "isVisible", T<bool> ]
+                Optional = []
+            }
+
+        let KeyboardOptions =
+            Pattern.Config "KeyboardOptions" {
+                Required = []
+                Optional = [
+                    "resize", KeyboardResize.Type
+                    "style", KeyboardStyle.Type
+                    "resizeOnFullScreen", T<bool>
+                ]
+            }
+
+        let PluginsConfig =
+            Pattern.Config "PluginsConfig" {
+                Required = []
+                Optional = [
+                    "Keyboard", KeyboardOptions.Type
+                ]
+            }
+
+        let KeyboardPlugin =
+            Class "KeyboardPlugin"
+            |=> Nested [
+                PluginsConfig; KeyboardOptions; AccessoryBarOptions; ScrollOptions; KeyboardResize
+                KeyboardInfo; KeyboardResizeOptions; KeyboardStyleOptions; KeyboardStyle
+            ]
+            |+> Instance [
+                "show" => T<unit> ^-> T<Promise<unit>>
+                "hide" => T<unit> ^-> T<Promise<unit>>
+                "setAccessoryBarVisible" => AccessoryBarOptions?option ^-> T<Promise<unit>>
+                "setScroll" => ScrollOptions?option ^-> T<Promise<unit>>
+                "setStyle" => KeyboardStyleOptions?option ^-> T<Promise<unit>>
+                "setResizeMode" => KeyboardResizeOptions?option ^-> T<Promise<unit>>
+                "getResizeMode" => T<unit> ^-> T<Promise<_>>[KeyboardResizeOptions]
+                "addListener" => T<string>?eventName * ListenFuncKeyboardInfo?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "eventName can be either keyboardWillShow or keyboardDidShow"
+                "addListener" => T<string>?eventName * ListenFunctionType?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "eventName can be either keyboardWillHide or keyboardDidHide"
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
     let Capacitor =
         Class "Capacitor"
         |+> Static [
+            "Keyboard" =? KeyboardPlugin
+            |> Import "Keyboard" "@capacitor/keyboard"
+            "InAppBrowser" =? InAppBrowserPlugin
+            |> Import "InAppBrowser" "@capacitor/inappbrowser"
             "Haptics" =? HapticsPlugin
             |> Import "Haptics" "@capacitor/haptics"
             "Filesystem" =? FilesystemPlugin
@@ -1101,123 +1411,22 @@ module Definition =
     let Assembly =
         Assembly [
             Namespace "WebSharper.Capacitor" [
-                ImpactStyle
-                NotificationType
-                NotificationOptions
-                Encoding
-                FileInfo
-                FileType
-                Directory
-                ProgressStatus
-                ImpactOptions
-                VibrateOptions
-                ReadFileOptions
-                ReadFileResult
-                WriteFileOptions
-                WriteFileResult
-                AppendFileOptions
-                DeleteFileOptions
-                MkdirOptions
-                RmdirOptions
-                ReaddirOptions
-                ReaddirResult
-                GetUriOptions
-                GetUriResult
-                StatOptions
-                StatResult
-                CopyResult
-                CopyOptions
-                DownloadFileOptions
-                DownloadFileResult
-                ProgressListener
-                HapticsPlugin
-                FilesystemPlugin
-                AlertOptions
-                PromptOptions
-                PromptResult
-                ConfirmOptions
-                ConfirmResult
-                DialogPlugin
-                LanguageTag
-                GetLanguageCodeResult
-                BatteryInfo
-                DeviceInfo
-                DeviceId
-                OperatingSystem
-                DevicePlatform
-                DevicePlugin
-                WriteOptions
-                ReadResult
-                OpenOptions
-                ClipboardPlugin
-                BrowserPlugin
-                CapacitorBarcodeScannerTypeHint
-                CapacitorBarcodeScannerAndroidScanningLibrary
-                CapacitorBarcodeScannerCameraDirection
-                CapacitorBarcodeScannerScanOrientation
-                AndroidScanningLibrary
-                WebOptions
-                CapacitorBarcodeScannerOptions
-                CapacitorBarcodeScannerScanResult
-                BarcodeScannerPlugin
                 Capacitor
-                CameraPlugin
-                GeolocationPlugin
                 ActionSheetPlugin
                 AppLauncherPlugin
                 AppPlugin
+                BarcodeScannerPlugin
+                BrowserPlugin
+                CameraPlugin
+                ClipboardPlugin
+                DevicePlugin
+                DialogPlugin
+                FilesystemPlugin
+                GeolocationPlugin
+                HapticsPlugin
+                InAppBrowserPlugin
+                KeyboardPlugin
                 MotionPlugin
-                PluginListenerHandle
-                OrientationListener
-                RotationRate
-                AccelListenerEvent
-                Acceleration
-                AccelListener
-                BackButtonListener
-                BackButtonListenerEvent
-                RestoredListener
-                RestoredListenerEvent
-                URLOpenListener
-                URLOpenListenerEvent
-                StateChangeListener
-                AppState
-                AppLaunchUrl
-                AppInfo
-                OpenURLResult
-                OpenURLOptions
-                CanOpenURLResult
-                CanOpenURLOptions
-                ShowActionsResult
-                ShowActionsOptions
-                ActionSheetButton
-                ActionSheetButtonStyle
-                Camera.PermissionStatus
-                PermissionState
-                GeolocationPluginPermissions
-                GeolocationPermissionType
-                ClearWatchOptions
-                PositionOptions
-                WatchPositionCallback
-                Position
-                Coordinates
-                CameraPermissionState
-                CameraPluginPermissions
-                CameraPermissionType
-                GalleryPhotos
-                GalleryPhoto
-                GalleryImageOptions
-                PresentationStyle
-                Photo
-                ImageOptions
-                CameraResultType
-                CameraDirection
-                CameraSource
-            ] 
-            Namespace "WebSharper.Capacitor.Geolocation" [
-                Geolocation.PermissionStatus
-            ]
-            Namespace "WebSharper.Capacitor.Filesystem" [
-                Filesystem.PermissionStatus
             ]
         ]
 
