@@ -5,7 +5,7 @@ open WebSharper.JavaScript
 open WebSharper.InterfaceGenerator
 
 module Definition =
-    let ListenFunctionType = T<unit> ^-> T<unit>
+    let ListenFunctionType schemaType  = schemaType ^-> T<unit>
 
     [<AutoOpen>]
     module Core = 
@@ -16,14 +16,10 @@ module Definition =
                 "granted"
                 "denied"
             ]
-
+            
         let PluginListenerHandle =
-            Pattern.Config "PluginListenerHandle" {
-                Required = []
-                Optional = [
-                    "remove", T<unit> ^-> T<Promise<unit>>
-                ]
-            }            
+            Class "PluginListenerHandle"
+            |+> Instance ["remove" => T<unit> ^-> T<Promise<unit>>]
 
         let PresentationStyle = 
             Pattern.EnumStrings "PresentationStyle" [
@@ -34,10 +30,10 @@ module Definition =
     [<AutoOpen>]
     module ActionSheet = 
         let ActionSheetButtonStyle =
-            Pattern.EnumInlines "ActionSheetButtonStyle" [
-                "Default", "DEFAULT"
-                "Destructive", "DESTRUCTIVE"
-                "Cancel", "CANCEL"
+            Pattern.EnumStrings "ActionSheetButtonStyle" [
+                "Default"
+                "Destructive"
+                "Cancel"
             ]
 
         let ActionSheetButton =
@@ -158,53 +154,36 @@ module Definition =
                 Optional = []
             }
 
-        let StateChangeListener = 
-            Pattern.Config "StateChangeListener" {
-                Required = []
-                Optional = ["state", AppState.Type ^-> T<unit>]
-            }
+        let StateChangeListener = AppState ^-> T<unit>
 
-        let URLOpenListener = 
-            Pattern.Config "URLOpenListener" {
-                Required = []
-                Optional = ["event", URLOpenListenerEvent.Type ^-> T<unit>]
-            }
+        let URLOpenListener = URLOpenListenerEvent ^-> T<unit>
 
-        let RestoredListener = 
-            Pattern.Config "RestoredListener" {
-                Required = []
-                Optional = ["event", RestoredListenerEvent.Type ^-> T<unit>]
-            }
+        let RestoredListener = RestoredListenerEvent ^-> T<unit>
 
-        let BackButtonListener = 
-            Pattern.Config "BackButtonListener" {
-                Required = []
-                Optional = ["event", BackButtonListenerEvent.Type ^-> T<unit>]
-            }
+        let BackButtonListener = BackButtonListenerEvent ^-> T<unit>
 
         let AppPlugin = 
             Class "AppPlugin" 
             |=> Nested [
-                BackButtonListener; RestoredListener; URLOpenListener; StateChangeListener
                 BackButtonListenerEvent; RestoredListenerEvent; URLOpenListenerEvent
-                AppLaunchUrl; AppState; AppInfo; PluginListenerHandle
+                AppLaunchUrl; AppState; AppInfo
             ]
             |+> Instance [
                 "exitApp" => T<unit> ^-> T<Promise<unit>>
                 "getInfo" => T<unit> ^-> T<Promise<_>>[AppInfo]
                 "getState" => T<unit> ^-> T<Promise<_>>[AppState]
-                "getLaunchUrl" => T<unit> ^-> T<Promise<_>>[AppLaunchUrl]
+                "getLaunchUrl" => T<unit> ^-> T<Promise<_>>[T<obj>]
                 "minimizeApp" => T<unit> ^-> T<Promise<unit>>
                 "addListener" => T<string>?eventName * StateChangeListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName is appStateChange"
-                "addListener" => T<string>?eventName * ListenFunctionType?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName can be either pause or resume"
+                |> WithComment "Listens for 'appStateChange' event."
+                "addListener" => T<string>?eventName * ListenFunctionType T<unit>?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'pause' or 'resume' events."
                 "addListener" => T<string>?eventName * URLOpenListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName is appUrlOpen"
+                |> WithComment "Listens for 'appUrlOpen' event."
                 "addListener" => T<string>?eventName * RestoredListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName is appRestoredResult"
+                |> WithComment "Listens for 'appRestoredResult' event."
                 "addListener" => T<string>?eventName * BackButtonListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName is backButton"
+                |> WithComment "Listens for 'backButton' event."
                 "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
             ]
 
@@ -314,12 +293,12 @@ module Definition =
 
         let BrowserPlugin = 
             Class "BrowserPlugin" 
-            |=> Nested [OpenOptions; PresentationStyle]
+            |=> Nested [OpenOptions]
             |+> Instance [
                 "open" => OpenOptions?options ^-> T<Promise<unit>>
                 "close" => T<unit> ^-> T<Promise<unit>>
-                "addListener" => T<string>?eventName * ListenFunctionType?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName can be either browserFinished or browserPageLoaded"
+                "addListener" => T<string>?eventName * ListenFunctionType T<unit>?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'browserFinished' and 'browserPageLoaded' events."
                 "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
             ]
 
@@ -489,11 +468,7 @@ module Definition =
                 Optional = []
             }
 
-        let WatchPositionCallback = 
-            Pattern.Config "WatchPositionCallback" {
-                Required = ["position", Position.Type]
-                Optional = ["err", T<obj>]
-            }
+        let WatchPositionCallback = (Position + T<unit>) * !?T<obj> ^-> T<unit>
 
         let GeolocationPermissionType =
             Pattern.EnumStrings "GeolocationPermissionType" [
@@ -536,10 +511,10 @@ module Definition =
             Class "GeolocationPlugin" 
             |=> Nested [
                 GeolocationPluginPermissions; PermissionStatus; ClearWatchOptions; PositionOptions
-                GeolocationPermissionType; WatchPositionCallback; Position; Coordinates; PermissionState
+                GeolocationPermissionType; Position; Coordinates
             ]
             |+> Instance [
-                "getCurrentPosition" => PositionOptions?options ^-> T<Promise<_>>[Position]
+                "getCurrentPosition" => !?PositionOptions?options ^-> T<Promise<_>>[Position]
                 "watchPosition" => PositionOptions?options * WatchPositionCallback?callback ^-> T<Promise<_>>[CallbackID]
                 "clearWatch" => ClearWatchOptions?options ^-> T<Promise<unit>>
                 "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
@@ -552,9 +527,9 @@ module Definition =
             Pattern.Config "Acceleration" {
                 Required = []
                 Optional = [
-                    "x", T<int>
-                    "y", T<int>
-                    "z", T<int>
+                    "x", T<double>
+                    "y", T<double>
+                    "z", T<double>
                 ]
             }
 
@@ -562,9 +537,9 @@ module Definition =
             Pattern.Config "RotationRate" {
                 Required = []
                 Optional = [
-                    "alpha", T<int>
-                    "beta", T<int>
-                    "gamma", T<int>
+                    "alpha", T<double>
+                    "beta", T<double>
+                    "gamma", T<double>
                 ]
             }
 
@@ -579,34 +554,22 @@ module Definition =
                 ]
             }
 
-        let AccelListener = 
-            Pattern.Config "AccelListener" {
-                Required = []
-                Optional = [
-                    "event", AccelListenerEvent ^-> T<unit>
-                ]
-            }
+        let AccelListener = AccelListenerEvent ^-> T<unit>
 
-        let OrientationListener = 
-            Pattern.Config "OrientationListener" {
-                Required = []
-                Optional = [
-                    "event", RotationRate ^-> T<unit>
-                ]
-            }
+        let OrientationListener = RotationRate ^-> T<unit>
 
         let OrientationListenerEvent = RotationRate
 
         let MotionPlugin = 
             Class "MotionPlugin"
             |=> Nested [
-                OrientationListenerEvent; OrientationListener; AccelListener; AccelListenerEvent; Acceleration
+                OrientationListenerEvent; AccelListenerEvent; Acceleration
             ]
             |+> Instance [
                 "addListener" => T<string>?eventName * AccelListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName is accel"
+                |> WithComment "Listens for 'accel' event."
                 "addListener" => T<string>?evenName * OrientationListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName is orientation"
+                |> WithComment "Listens for 'orientation' event."
             ]
 
     [<AutoOpen>]
@@ -719,6 +682,7 @@ module Definition =
                 DevicePlatform; DeviceId; OperatingSystem
             ]
             |+> Instance [
+                "getId" => T<unit> ^-> T<Promise<_>>[DeviceId]
                 "getInfo" => T<unit> ^-> T<Promise<_>>[DeviceInfo]
                 "getBatteryInfo" => T<unit> ^-> T<Promise<_>>[BatteryInfo]
                 "getLanguageCode" => T<unit> ^-> T<Promise<_>>[GetLanguageCodeResult]
@@ -733,7 +697,7 @@ module Definition =
                 Optional = [
                     "title", T<string>
                     "message", T<string>
-                    "buttonTitle", T<string>
+                    "buttonTitle", T<string> 
                 ]
             }
 
@@ -831,19 +795,13 @@ module Definition =
                 ]
             }
 
-        let ProgressListener = 
-            Pattern.Config "ProgressListener" {
-                Required = []
-                Optional = [
-                    "progress", ProgressStatus ^-> T<unit>
-                ]
-            }
+        let ProgressListener = ProgressStatus ^-> T<unit>
 
         let ReadFileResult =
             Pattern.Config "ReadFileResult" {
                 Required = []
                 Optional = [
-                    "data", T<string> * !?T<Blob>
+                    "data", T<string> + T<Blob>
                 ]
             }
 
@@ -853,7 +811,7 @@ module Definition =
                 Optional = [
                     "path", T<string>
                     "directory", Directory.Type
-                    "encoding", Directory.Type
+                    "encoding", Encoding.Type
                 ]
             }
 
@@ -870,7 +828,7 @@ module Definition =
                 Required = []
                 Optional = [
                     "path", T<string> 
-                    "data", T<string> * !?T<Blob>
+                    "data", T<string> + T<Blob>
                     "directory", Directory.Type
                     "encoding", Encoding.Type
                     "recursive", T<bool> 
@@ -1033,8 +991,8 @@ module Definition =
                 ReaddirResult; DownloadFileOptions; DownloadFileResult; PermissionStatus; CopyResult
                 StatOptions; StatResult; GetUriOptions; GetUriResult; ReaddirOptions; FileInfo
                 FileType; RmdirOptions; MkdirOptions; DeleteFileOptions; AppendFileOptions
-                WriteFileOptions; WriteFileResult; ProgressListener; ReadFileOptions 
-                ProgressStatus; CopyOptions; Encoding; ReadFileResult; Directory
+                WriteFileOptions; WriteFileResult; ReadFileOptions; Directory
+                ProgressStatus; CopyOptions; Encoding; ReadFileResult; 
             ]
             |+> Instance [
                 "readFile" => ReadFileOptions?options ^-> T<Promise<_>>[ReadFileResult]
@@ -1101,9 +1059,9 @@ module Definition =
                 VibrateOptions; NotificationOptions; ImpactOptions; NotificationType; ImpactStyle                 
             ]
             |+> Instance [
-                "impact" => ImpactOptions ?options ^-> T<Promise<unit>>
-                "notification" => NotificationOptions?options ^-> T<Promise<unit>>
-                "vibrate" => VibrateOptions?options ^-> T<Promise<unit>>
+                "impact" => !?ImpactOptions ?options ^-> T<Promise<unit>>
+                "notification" => !?NotificationOptions?options ^-> T<Promise<unit>>
+                "vibrate" => !?VibrateOptions?options ^-> T<Promise<unit>>
                 "selectionStart" => T<unit> ^-> T<Promise<unit>>
                 "selectionChanged" => T<unit> ^-> T<Promise<unit>>
                 "selectionEnd" => T<unit> ^-> T<Promise<unit>>
@@ -1111,45 +1069,45 @@ module Definition =
 
     [<AutoOpen>]
     module InAppBrowser = 
-        let ToolbarPosition = 
-            Pattern.EnumStrings "ToolbarPosition" [
-                "TOP"
-                "BOTTOM"
+        let ToolbarPosition =
+            Pattern.EnumInlines "ToolbarPosition" [
+                "TOP", "0"
+                "BOTTOM", "1"
             ]
 
         let iOSViewStyle =
-            Pattern.EnumStrings "iOSViewStyle" [
-                "PAGE_SHEET"
-                "FORM_SHEET"
-                "FULL_SCREEN"
+            Pattern.EnumInlines "iOSViewStyle" [
+                "PAGE_SHEET", "0"
+                "FORM_SHEET", "1"
+                "FULL_SCREEN", "2"
             ]
 
-        let iOSAnimation = 
-            Pattern.EnumStrings "iOSAnimation" [
-                "FLIP_HORIZONTAL"
-                "CROSS_DISSOLVE"
-                "COVER_VERTICAL"
+        let AndroidViewStyle =
+            Pattern.EnumInlines "AndroidViewStyle" [
+                "BOTTOM_SHEET", "0"
+                "FULL_SCREEN", "1"
             ]
 
-        let AndroidViewStyle = 
-            Pattern.EnumStrings "AndroidViewStyle" [
-                "BOTTOM_SHEET"
-                "FULL_SCREEN"
+        let iOSAnimation =
+            Pattern.EnumInlines "iOSAnimation" [
+                "FLIP_HORIZONTAL", "0"
+                "CROSS_DISSOLVE", "1"
+                "COVER_VERTICAL", "2"
             ]
 
-        let AndroidAnimation =  
-            Pattern.EnumStrings "AndroidAnimation" [
-                "FADE_IN"
-                "FADE_OUT"
-                "SLIDE_IN_LEFT"
-                "SLIDE_OUT_RIGHT"
+        let AndroidAnimation =
+            Pattern.EnumInlines "AndroidAnimation" [
+                "FADE_IN", "0"
+                "FADE_OUT", "1"
+                "SLIDE_IN_LEFT", "2"
+                "SLIDE_OUT_RIGHT", "3"
             ]
 
-        let DismissStyle =  
-            Pattern.EnumStrings "DismissStyle" [
-                "CLOSE"
-                "CANCEL"
-                "DONE"
+        let DismissStyle =
+            Pattern.EnumInlines "DismissStyle" [
+                "CLOSE", "0"
+                "CANCEL", "1"
+                "DONE", "2"
             ]
 
         let AndroidWebViewOptions = 
@@ -1247,7 +1205,7 @@ module Definition =
                     "toolbarPosition", ToolbarPosition.Type
                     "showNavigationButtons", T<bool>
                     "leftToRight", T<bool>
-                    "customWebViewUserAgent", T<string >
+                    "customWebViewUserAgent", T<string>
                     "android", AndroidWebViewOptions.Type
                     "iOS", iOSWebViewOptions.Type
                 ]
@@ -1275,7 +1233,7 @@ module Definition =
                 "openInSystemBrowser" => OpenInSystemBrowserParameterModel?model ^-> T<Promise<unit>>
                 "openInExternalBrowser" => OpenInDefaultParameterModel?model ^-> T<Promise<unit>>
                 "close" => T<unit> ^-> T<Promise<unit>>
-                "addListener" => T<string>?eventName * ListenFunctionType?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                "addListener" => T<string>?eventName * ListenFunctionType T<unit>?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 "removeAllListeners" => T<unit> ^-> T<unit>
             ]
  
@@ -1319,8 +1277,6 @@ module Definition =
                     "keyboardHeight", T<int>
                 ]
             }
-
-        let ListenFuncKeyboardInfo = KeyboardInfo ^-> T<unit>
 
         let ScrollOptions =
             Pattern.Config "ScrollOptions" {
@@ -1366,16 +1322,449 @@ module Definition =
                 "setStyle" => KeyboardStyleOptions?option ^-> T<Promise<unit>>
                 "setResizeMode" => KeyboardResizeOptions?option ^-> T<Promise<unit>>
                 "getResizeMode" => T<unit> ^-> T<Promise<_>>[KeyboardResizeOptions]
-                "addListener" => T<string>?eventName * ListenFuncKeyboardInfo?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName can be either keyboardWillShow or keyboardDidShow"
-                "addListener" => T<string>?eventName * ListenFunctionType?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "eventName can be either keyboardWillHide or keyboardDidHide"
+                "addListener" => T<string>?eventName * ListenFunctionType KeyboardInfo?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listen for keyboardWillShow or keyboardDidShow events"
+                "addListener" => T<string>?eventName * ListenFunctionType T<unit>?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listen for keyboardWillHide or keyboardDidHide events"
                 "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module LocalNotifications = 
+        let Weekday = 
+            Pattern.EnumInlines "Weekday" [
+                "Sunday", "1"
+                "Monday", "2"
+                "Tuesday", "3"
+                "Wednesday", "4"
+                "Thursday", "5"
+                "Friday", "6"
+                "Saturday", "7"
+            ]
+
+        let ScheduleEvery = 
+            Pattern.EnumStrings "ScheduleEvery" [
+                "year"
+                "month"
+                "two-weeks"
+                "week"
+                "day"
+                "hour"
+                "minute"
+                "second"
+            ]
+
+        let Importance = 
+            Pattern.EnumStrings "Importance" ["1"; "2"; "3"; "4"; "5"]
+
+        let Visibility = 
+            Pattern.EnumStrings "Visibility" ["-1"; "0"; "1"]
+
+        let LocalNotificationDescriptor = 
+            Pattern.Config "LocalNotificationDescriptor" {
+                Required = []
+                Optional = ["id", T<int>]
+            }
+
+        let ScheduleResult = 
+            Pattern.Config "ScheduleResult" {
+                Required = []
+                Optional = ["notifications", !| LocalNotificationDescriptor]
+            }
+
+        let ScheduleOn = 
+            Pattern.Config "ScheduleOn" {
+                Required = []
+                Optional = [
+                    "year", T<int>
+                    "month", T<int>
+                    "day", T<int>
+                    "weekday", Weekday.Type
+                    "hour", T<int>
+                    "minute", T<int>
+                    "second", T<int>
+                ]
+            }
+
+        let Schedule =
+            Pattern.Config "Schedule" {
+                Required = []
+                Optional = [
+                    "at", T<Date>
+                    "repeats", T<bool>
+                    "allowWhileIdle", T<bool>
+                    "on", ScheduleOn.Type
+                    "every", ScheduleEvery.Type
+                    "count", T<int>
+                ]
+            }
+
+        let AttachmentOptions =
+            Pattern.Config "AttachmentOptions" {
+                Required = []
+                Optional = [
+                    "iosUNNotificationAttachmentOptionsTypeHintKey", T<string>
+                    "iosUNNotificationAttachmentOptionsThumbnailHiddenKey", T<string>
+                    "iosUNNotificationAttachmentOptionsThumbnailClippingRectKey", T<string>
+                    "iosUNNotificationAttachmentOptionsThumbnailTimeKey", T<string>
+                ]
+            }
+
+        let Attachment =
+            Pattern.Config "Attachment" {
+                Required = []
+                Optional = [
+                    "id", T<string>
+                    "url", T<string>
+                    "options", AttachmentOptions.Type
+                ]
+            }
+
+        let LocalNotificationSchema = 
+            Pattern.Config "LocalNotificationSchema" {
+                Required = []
+                Optional = [
+                    "title", T<string>
+                    "body", T<string>
+                    "largeBody", T<string>
+                    "summaryText", T<string>
+                    "id", T<int>
+                    "schedule", Schedule.Type
+                    "sound", T<string>
+                    "smallIcon", T<string>
+                    "largeIcon", T<string>
+                    "iconColor", T<string>
+                    "attachments", !| Attachment
+                    "actionTypeId", T<string>
+                    "extra", T<obj>
+                    "threadIdentifier", T<string>
+                    "summaryArgument", T<string>
+                    "group", T<string>
+                    "groupSummary", T<bool>
+                    "channelId", T<string>
+                    "ongoing", T<bool>
+                    "autoCancel", T<bool>
+                    "inboxList", !| T<string>
+                    "silent", T<bool>
+                ]
+            }
+
+        let ScheduleOptions = 
+            Pattern.Config "ScheduleOptions" {
+                Required = []
+                Optional = ["notifications", !| LocalNotificationSchema]
+            }
+
+        let PendingLocalNotificationSchema = 
+            Pattern.Config "PendingLocalNotificationSchema" {
+                Required = []
+                Optional = [
+                    "title", T<string>
+                    "body", T<string>
+                    "id", T<int>
+                    "schedule", Schedule.Type
+                    "extra", T<obj>
+                ]
+            }
+
+        let PendingResult = 
+            Pattern.Config "PendingResult" {
+                Required = []
+                Optional = [
+                    "notifications", !| PendingLocalNotificationSchema
+                ]
+            }
+
+        let Action = 
+            Pattern.Config "Action" {
+                Required = []
+                Optional = [
+                    "id", T<string>
+                    "title", T<string>
+                    "requiresAuthentication", T<bool>
+                    "foreground", T<bool>
+                    "destructive", T<bool>
+                    "input", T<bool>
+                    "inputButtonTitle", T<string>
+                    "inputPlaceholder", T<string>
+                ]
+            }
+
+        let ActionType = 
+            Pattern.Config "ActionType" {
+                Required = []
+                Optional = [
+                    "id", T<string>
+                    "actions", !| Action
+                    "iosHiddenPreviewsBodyPlaceholder", T<string>
+                    "iosCustomDismissAction", T<bool>
+                    "iosAllowInCarPlay", T<bool>
+                    "iosHiddenPreviewsShowTitle", T<bool>
+                    "iosHiddenPreviewsShowSubtitle", T<bool>
+                ]
+            }
+
+        let RegisterActionTypesOptions = 
+            Pattern.Config "RegisterActionTypesOptions" {
+                Required = []
+                Optional = [
+                    "types", !| ActionType
+                ]
+            }
+
+        let CancelOptions = 
+            Pattern.Config "CancelOptions" {
+                Required = []
+                Optional = [
+                    "types", !| LocalNotificationDescriptor
+                ]
+            }
+
+        let EnabledResult = 
+            Pattern.Config "EnabledResult" {
+                Required = []
+                Optional = [
+                    "value", T<bool>
+                ]
+            }
+
+        let DeliveredNotificationSchema = 
+            Pattern.Config "DeliveredNotificationSchema" {
+                Required = []
+                Optional = [
+                    "id", T<int>
+                    "tag", T<string>
+                    "title", T<string>
+                    "body", T<string>
+                    "group", T<string>
+                    "groupSummary", T<bool>
+                    "data", T<obj>
+                    "extra", T<obj>
+                    "attachments", !| Attachment
+                    "actionTypeId", T<string>
+                    "schedule", Schedule.Type
+                    "sound", T<string>
+                ]
+            }
+
+        let DeliveredNotifications = 
+            Pattern.Config "DeliveredNotifications" {
+                Required = []
+                Optional = [
+                    "notifications", !| DeliveredNotificationSchema
+                ]
+            }
+
+        let Channel = 
+            Pattern.Config "Channel" {
+                Required = []
+                Optional = [
+                    "id", T<string>
+                    "name", T<string>
+                    "description", T<string>
+                    "sound", T<string>
+                    "group", T<string>
+                    "importance", Importance.Type
+                    "visibility", Visibility.Type
+                    "lights", T<bool>
+                    "lightColor", T<string>
+                    "vibration", T<bool>
+                ]
+            }
+
+        let ListChannelsResult = 
+            Pattern.Config "ListChannelsResult" {
+                Required = []
+                Optional = [
+                    "channels", !| Channel
+                ]
+            }
+
+        let PermissionStatus = 
+            Pattern.Config "PermissionStatus" {
+                Required = []
+                Optional = [
+                    "display", PermissionState.Type
+                ]
+            } 
+
+        let SettingsPermissionStatus = 
+            Pattern.Config "SettingsPermissionStatus" {
+                Required = []
+                Optional = [
+                    "exact_alarm", PermissionState.Type
+                ]
+            }
+
+        let ActionPerformed = 
+            Pattern.Config "ActionPerformed" {
+                Required = []
+                Optional = [
+                    "actionId", T<string>
+                    "inputValue", T<string>
+                    "notification", LocalNotificationSchema.Type
+                ]
+            }
+
+        let LocalNotificationsOptions =
+            Pattern.Config "LocalNotificationsOptions" {
+                Required = []
+                Optional = [
+                    "smallIcon", T<string>
+                    "iconColor", T<string>
+                    "sound", T<string>
+                ]
+            }
+
+        let PluginsConfig =
+            Pattern.Config "PluginsConfig" {
+                Required = []
+                Optional = [
+                    "LocalNotifications", LocalNotificationsOptions.Type
+                ]
+            }
+
+        let DeleteChannelOptions = 
+            Pattern.Config "DeleteChannelOptions" {
+                Required = [ "id", T<string> ]
+                Optional = []
+            }
+        
+        let LocalNotificationsPlugin = 
+            Class "LocalNotificationsPlugin"
+            |=> Nested [
+                DeleteChannelOptions; PluginsConfig; LocalNotificationsOptions; ActionPerformed; SettingsPermissionStatus
+                PermissionStatus; ListChannelsResult; Channel; DeliveredNotifications; DeliveredNotificationSchema
+                EnabledResult; CancelOptions; RegisterActionTypesOptions; ActionType; Action; PendingResult; Importance
+                PendingLocalNotificationSchema; ScheduleOptions; LocalNotificationSchema; Attachment; AttachmentOptions
+                Schedule; ScheduleOn; ScheduleResult; LocalNotificationDescriptor; Weekday; ScheduleEvery; Visibility
+            ]
+            |+> Instance [
+                "schedule" => ScheduleOptions?options ^-> T<Promise<_>>[ScheduleResult]
+                "getPending" => T<unit> ^-> T<Promise<_>>[PendingResult]
+                "registerActionTypes" => RegisterActionTypesOptions?options ^-> T<Promise<unit>>
+                "cancel" => CancelOptions?options ^-> T<Promise<unit>>
+                "areEnabled" => T<unit> ^-> T<Promise<_>>[EnabledResult]
+                "getDeliveredNotifications" => T<unit> ^-> T<Promise<_>>[DeliveredNotifications]
+                "removeDeliveredNotifications" => DeliveredNotifications?delivered ^-> T<Promise<unit>>
+                "removeAllDeliveredNotifications" => T<unit> ^-> T<Promise<unit>>
+                "createChannel" => Channel?channel ^-> T<Promise<unit>>
+                "deleteChannel" => DeleteChannelOptions?args ^-> T<Promise<unit>>
+                "listChannels" => T<unit> ^-> T<Promise<_>>[ListChannelsResult]
+                "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
+                "requestPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
+                "changeExactNotificationSetting" => T<unit> ^-> T<Promise<_>>[SettingsPermissionStatus]
+                "checkExactNotificationSetting" => T<unit> ^-> T<Promise<_>>[SettingsPermissionStatus]
+                "addListener" => T<string>?eventName * ListenFunctionType LocalNotificationSchema?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'localNotificationReceived' event."
+                "addListener" => T<string>?eventName * ListenFunctionType ActionPerformed?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'localNotificationActionPerformed' event."
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module Network = 
+        let ConnectionType =
+            Pattern.EnumStrings "ConnectionType" ["wifi"; "cellular"; "none"; "unknown"]
+
+        let ConnectionStatus =
+            Pattern.Config "ConnectionStatus" {
+                Required = [
+                    "connected", T<bool>
+                    "connectionType", ConnectionType.Type
+                ]
+                Optional = []
+            }
+
+        let ConnectionStatusChangeListener = ConnectionStatus ^-> T<unit>
+
+        let NetworkPlugin =
+            Class "NetworkPlugin"
+            |=> Nested [ConnectionType; ConnectionStatus]
+            |+> Instance [
+                "getStatus" => T<unit> ^-> T<Promise<_>>[ConnectionStatus]
+                "addListener" => T<string>?eventName * ConnectionStatusChangeListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'networkStatusChange' event."
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module Preferences = 
+        let ConfigureOptions =
+            Pattern.Config "ConfigureOptions" {
+                Required = []
+                Optional = ["group", T<string>]
+            }
+
+        let GetOptions =
+            Pattern.Config "GetOptions" {
+                Required = ["key", T<string>]
+                Optional = []
+            }
+
+        let GetResult =
+            Pattern.Config "GetResult" {
+                Required = ["value", T<string> + T<unit>]
+                Optional = []
+            }
+
+        let SetOptions =
+            Pattern.Config "SetOptions" {
+                Required = [
+                    "key", T<string>
+                    "value", T<string>
+                ]
+                Optional = []
+            }
+
+        let RemoveOptions =
+            Pattern.Config "RemoveOptions" {
+                Required = [
+                    "key", T<string>
+                ]
+                Optional = []
+            }
+
+        let KeysResult =
+            Pattern.Config "KeysResult" {
+                Required = [
+                    "keys", !|T<string> 
+                ]
+                Optional = []
+            }
+
+        let MigrateResult =
+            Pattern.Config "MigrateResult" {
+                Required = [
+                    "migrated", !|T<string>  
+                    "existing", !|T<string>  
+                ]
+                Optional = []
+            }
+
+        let PreferencesPlugin =
+            Class "PreferencesPlugin"
+            |=> Nested [ConfigureOptions; GetOptions; GetResult; SetOptions; RemoveOptions; KeysResult; MigrateResult]
+            |+> Instance [
+                "configure" => ConfigureOptions?options ^-> T<Promise<unit>>
+                "get" => GetOptions?options ^-> T<Promise<_>>[GetResult]
+                "set" => SetOptions?options ^-> T<Promise<unit>>
+                "remove" => RemoveOptions?options ^-> T<Promise<unit>>
+                "clear" => T<unit> ^-> T<Promise<unit>>
+                "keys" => T<unit> ^-> T<Promise<_>>[KeysResult]
+                "migrate" => T<unit> ^-> T<Promise<_>>[MigrateResult]
+                "removeOld" => T<unit> ^-> T<Promise<unit>>
             ]
 
     let Capacitor =
         Class "Capacitor"
         |+> Static [
+            "PreferencesPlugin" =? PreferencesPlugin
+            |> Import "Preferences" "@capacitor/preferences"
+            "NetworkPlugin" =? NetworkPlugin
+            |> Import "Network" "@capacitor/network"
+            "LocalNotificationsPlugin" =? LocalNotificationsPlugin
+            |> Import "LocalNotifications" "@capacitor/local-notifications"
             "Keyboard" =? KeyboardPlugin
             |> Import "Keyboard" "@capacitor/keyboard"
             "InAppBrowser" =? InAppBrowserPlugin
@@ -1412,6 +1801,9 @@ module Definition =
         Assembly [
             Namespace "WebSharper.Capacitor" [
                 Capacitor
+                PermissionState
+                PluginListenerHandle
+                PresentationStyle
                 ActionSheetPlugin
                 AppLauncherPlugin
                 AppPlugin
@@ -1426,7 +1818,10 @@ module Definition =
                 HapticsPlugin
                 InAppBrowserPlugin
                 KeyboardPlugin
+                LocalNotificationsPlugin
                 MotionPlugin
+                NetworkPlugin
+                PreferencesPlugin
             ]
         ]
 
