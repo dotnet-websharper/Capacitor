@@ -1875,10 +1875,18 @@ module Definition =
                 Optional = []
             }
 
+        let DeleteChannelArgs = 
+            Pattern.Config "DeleteChannelArgs" {
+                Required = [
+                    "id", T<string>
+                ]
+                Optional = []
+            }
+
         let PushNotificationsPlugin =
             Class "PushNotificationsPlugin"
             |=> Nested [
-                PresentationOption; Importance; Visibility; PermissionStatus; Channel; PushNotificationSchema
+                PresentationOption; Importance; Visibility; PermissionStatus; Channel; PushNotificationSchema; DeleteChannelArgs
                 ActionPerformed; Token; RegistrationError; DeliveredNotifications; ListChannelsResult;PluginsConfig
             ]
             |+> Instance [
@@ -1888,7 +1896,7 @@ module Definition =
                 "removeDeliveredNotifications" => DeliveredNotifications?delivered ^-> T<Promise<unit>>
                 "removeAllDeliveredNotifications" => T<unit> ^-> T<Promise<unit>>
                 "createChannel" => Channel?channel ^-> T<Promise<unit>>
-                "deleteChannel" => T<string>?args ^-> T<Promise<unit>>
+                "deleteChannel" => DeleteChannelArgs?args ^-> T<Promise<unit>>
                 "listChannels" => T<unit> ^-> T<Promise<_>>[ListChannelsResult]
                 "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
                 "requestPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
@@ -1965,13 +1973,21 @@ module Definition =
                 Optional = []
             }
 
+        let IsEnabledResult = 
+            Pattern.Config "IsEnabledResult" {
+                Required = [
+                    "value", T<bool>
+                ]
+                Optional = []
+            }
+
         let StateChangeListener = ScreenReaderState?state ^-> T<unit>
 
         let ScreenReaderPlugin =
             Class "ScreenReaderPlugin"
-            |=> Nested [SpeakOptions; ScreenReaderState]
+            |=> Nested [SpeakOptions; ScreenReaderState; IsEnabledResult]
             |+> Instance [
-                "isEnabled" => T<unit> ^-> T<Promise<bool>>
+                "isEnabled" => T<unit> ^-> T<Promise<_>>[IsEnabledResult]
                 "speak" => SpeakOptions?options ^-> T<Promise<unit>>
                 "addListener" => T<string>?eventName * StateChangeListener?listener ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "Listens for 'stateChange' event."
@@ -2167,9 +2183,69 @@ module Definition =
                 "set" => SetOptions?options ^-> T<Promise<unit>>
             ]
 
+    [<AutoOpen>]
+    module Toast = 
+        let ShowOptions = 
+            Pattern.Config "ShowOptions" {
+                Required = [
+                    "text", T<string>
+                ]
+                Optional = [
+                    "duration", T<string>  
+                    "position", T<string> 
+                ]
+            }
+
+        let ToastPlugin =
+            Class "ToastPlugin"
+            |=> Nested [ShowOptions]
+            |+> Instance [
+                "show" => ShowOptions?options ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module Watch = 
+        let CommandData = 
+            Pattern.Config "CommandData" {
+                Required = [
+                    "command", T<string>
+                ]
+                Optional = []
+            }
+
+        let WatchUIOptions = 
+            Pattern.Config "WatchUIOptions" {
+                Required = [
+                    "watchUI", T<string>
+                ]
+                Optional = []
+            }
+
+        let WatchDataOptions = 
+            Pattern.Config "WatchDataOptions" {
+                Required = [
+                    "data", T<obj>
+                ]
+                Optional = []
+            }
+
+        let WatchPlugin =
+            Class "WatchPlugin"
+            |=> Nested [CommandData; WatchUIOptions; WatchDataOptions]
+            |+> Instance [
+                "addListener" => T<string>?eventName * ListenFunctionType CommandData?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'runCommand' event."
+                "updateWatchUI" => WatchUIOptions?options ^-> T<Promise<unit>>
+                "updateWatchData" => WatchDataOptions?options ^-> T<Promise<unit>>
+            ]
+
     let Capacitor =
         Class "Capacitor"
         |+> Static [
+            "WatchPlugin" =? WatchPlugin
+            |> Import "Watch" "@capacitor/watch"
+            "ToastPlugin" =? ToastPlugin
+            |> Import "Toast" "@capacitor/toast"
             "TextZoomPlugin" =? TextZoomPlugin
             |> Import "TextZoom" "@capacitor/text-zoom"
             "StatusBarPlugin" =? StatusBarPlugin
@@ -2254,6 +2330,8 @@ module Definition =
                 SplashScreenPlugin
                 StatusBarPlugin
                 TextZoomPlugin
+                ToastPlugin
+                WatchPlugin
             ]
         ]
 
