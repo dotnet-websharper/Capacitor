@@ -1,10 +1,10 @@
-2024-08-28 16:30:03.4809|DEBUG|Program|location of wsfscservice is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
-2024-08-28 16:30:03.4809|DEBUG|Program|pipename is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
-2024-08-28 16:30:03.4809|DEBUG|Program|Compiling D:\WebSharper\Capacitor\Capacitor\WebSharper.Capacitor.fsproj
-2024-08-28 16:30:04.8339|TRACE|Program|Server sends: n: F# compilation: 00:00:01.3535552
-2024-08-28 16:30:05.2695|TRACE|Program|Server sends: n: Loading IExtension implementation: 00:00:00.4357294
-2024-08-28 16:30:05.3032|TRACE|Program|Server sends: n: Getting Assembly definition: 00:00:00.0336965
-2024-08-28 16:30:05.4584|TRACE|Program|Server sends: n: Built assembly: 00:00:00.1551593
-2024-08-28 16:30:05.4800|TRACE|Program|Server sends: n: Creating WebSharper metadata: 00:00:00.0216269
-2024-08-28 16:30:05.4931|TRACE|Program|Server sends: n: Writing final dll: 00:00:00.0130857
-2024-08-28 16:30:05.4931|TRACE|Program|Server sends: x: 0
+2024-08-29 11:00:29.6453|DEBUG|Program|location of wsfscservice is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
+2024-08-29 11:00:29.6476|DEBUG|Program|pipename is: C:\Users\souva\.nuget\packages\websharper.fsharp\8.0.0.473-beta1\tools\net8.0\win-x64 (server side)
+2024-08-29 11:00:29.6476|DEBUG|Program|Compiling D:\WebSharper\Capacitor\Capacitor\WebSharper.Capacitor.fsproj
+2024-08-29 11:00:31.2598|TRACE|Program|Server sends: n: F# compilation: 00:00:01.6168973
+2024-08-29 11:00:31.7097|TRACE|Program|Server sends: n: Loading IExtension implementation: 00:00:00.4500219
+2024-08-29 11:00:31.7571|TRACE|Program|Server sends: n: Getting Assembly definition: 00:00:00.0474004
+2024-08-29 11:00:31.9582|TRACE|Program|Server sends: n: Built assembly: 00:00:00.2011863
+2024-08-29 11:00:32.0036|TRACE|Program|Server sends: n: Creating WebSharper metadata: 00:00:00.0452819
+2024-08-29 11:00:32.0249|TRACE|Program|Server sends: n: Writing final dll: 00:00:00.0212924
+2024-08-29 11:00:32.0249|TRACE|Program|Server sends: x: 0

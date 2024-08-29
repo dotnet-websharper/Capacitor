@@ -5,10 +5,10 @@ open WebSharper.JavaScript
 open WebSharper.InterfaceGenerator
 
 module Definition =
-    let ListenFunctionType schemaType  = schemaType ^-> T<unit>
-
     [<AutoOpen>]
     module Core = 
+        let ListenFunctionType schemaType  = schemaType ^-> T<unit>
+
         let PermissionState =
             Pattern.EnumStrings "PermissionState" [
                 "prompt"
@@ -1756,9 +1756,434 @@ module Definition =
                 "removeOld" => T<unit> ^-> T<Promise<unit>>
             ]
 
+    [<AutoOpen>]
+    module PushNotifications =
+        let PresentationOption =
+            Pattern.EnumStrings "PresentationOption" [
+                "badge"
+                "sound"
+                "alert"
+            ]
+
+        let PluginsConfig = 
+            Pattern.Config "PluginsConfig" {
+                Required = []
+                Optional = [
+                    "presentationOptions", PresentationOption.Type
+                ]
+            }
+
+        let Importance =
+            Pattern.EnumStrings "Importance" [
+                "1"
+                "2"
+                "3"
+                "4"
+                "5"
+            ]
+
+        let Visibility =
+            Pattern.EnumStrings "Visibility" [
+                "-1"
+                "0"
+                "1"
+            ]
+
+        let PermissionStatus =
+            Pattern.Config "PermissionStatus" {
+                Required = [
+                    "receive", PermissionState.Type
+                ]
+                Optional = []
+            }
+
+        let Channel =
+            Pattern.Config "Channel" {
+                Required = [
+                    "id", T<string>
+                    "name", T<string>
+                ]
+                Optional = [
+                    "description", T<string>
+                    "sound", T<string>
+                    "importance", Importance.Type
+                    "visibility", Visibility.Type
+                    "lights", T<bool>
+                    "lightColor", T<string>
+                    "vibration", T<bool>
+                ]
+            }
+
+        let PushNotificationSchema =
+            Pattern.Config "PushNotificationSchema" {
+                Required = []
+                Optional = [
+                    "title", T<string>
+                    "subtitle", T<string>
+                    "body", T<string>
+                    "id", T<string>
+                    "tag", T<string>
+                    "badge", T<int>
+                    "notification", T<obj>
+                    "data", T<obj>
+                    "click_action", T<string>
+                    "link", T<string>
+                    "group", T<string>
+                    "groupSummary", T<bool>
+                ]
+            }
+
+        let ActionPerformed =
+            Pattern.Config "ActionPerformed" {
+                Required = []
+                Optional = [
+                    "actionId", T<string>
+                    "notification", PushNotificationSchema.Type
+                    "inputValue", T<string>
+                ]
+            }
+
+        let Token =
+            Pattern.Config "Token" {
+                Required = [
+                    "value", T<string>
+                ]
+                Optional = []
+            }
+
+        let RegistrationError =
+            Pattern.Config "RegistrationError" {
+                Required = [
+                    "error", T<string>
+                ]
+                Optional = []
+            }
+
+        let DeliveredNotifications =
+            Pattern.Config "DeliveredNotifications" {
+                Required = [
+                    "notifications", !| PushNotificationSchema
+                ]
+                Optional = []
+            }
+
+        let ListChannelsResult =
+            Pattern.Config "ListChannelsResult" {
+                Required = [
+                    "channels", !| Channel
+                ]
+                Optional = []
+            }
+
+        let PushNotificationsPlugin =
+            Class "PushNotificationsPlugin"
+            |=> Nested [
+                PresentationOption; Importance; Visibility; PermissionStatus; Channel; PushNotificationSchema
+                ActionPerformed; Token; RegistrationError; DeliveredNotifications; ListChannelsResult;PluginsConfig
+            ]
+            |+> Instance [
+                "register" => T<unit> ^-> T<Promise<unit>>
+                "unregister" => T<unit> ^-> T<Promise<unit>>
+                "getDeliveredNotifications" => T<unit> ^-> T<Promise<_>>[DeliveredNotifications]
+                "removeDeliveredNotifications" => DeliveredNotifications?delivered ^-> T<Promise<unit>>
+                "removeAllDeliveredNotifications" => T<unit> ^-> T<Promise<unit>>
+                "createChannel" => Channel?channel ^-> T<Promise<unit>>
+                "deleteChannel" => T<string>?args ^-> T<Promise<unit>>
+                "listChannels" => T<unit> ^-> T<Promise<_>>[ListChannelsResult]
+                "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
+                "requestPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
+                "addListener" => T<string>?eventName * ListenFunctionType Token?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'registration' event."
+                "addListener" => T<string>?eventName * ListenFunctionType RegistrationError?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'registrationError' event."
+                "addListener" => T<string>?eventName * ListenFunctionType PushNotificationSchema?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'pushNotificationReceived' event."
+                "addListener" => T<string>?eventName * ListenFunctionType ActionPerformed?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'pushNotificationActionPerformed' event."
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module ScreenOrientation =
+        let OrientationLockType =
+            Pattern.EnumStrings "OrientationLockType" [
+                "any"
+                "natural"
+                "landscape"
+                "portrait"
+                "portrait-primary"
+                "portrait-secondary"
+                "landscape-primary"
+                "landscape-secondary"
+            ]
+
+        let OrientationLockOptions =
+            Pattern.Config "OrientationLockOptions" {
+                Required = [
+                    "orientation", OrientationLockType.Type
+                ]
+                Optional = []
+            }
+
+        let ScreenOrientationResult =
+            Pattern.Config "ScreenOrientationResult" {
+                Required = [
+                    "type", OrientationLockType.Type
+                ]
+                Optional = []
+            }
+
+        let ScreenOrientationPlugin =
+            Class "ScreenOrientationPlugin"
+            |=> Nested [OrientationLockType; OrientationLockOptions; ScreenOrientationResult]
+            |+> Instance [
+                "orientation" => T<unit> ^-> T<Promise<_>>[ScreenOrientationResult]
+                "lock" => OrientationLockOptions?options ^-> T<Promise<unit>>
+                "unlock" => T<unit> ^-> T<Promise<unit>>
+                "addListener" => T<string>?eventName * ListenFunctionType ScreenOrientationResult?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'screenOrientationChange' event."
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ] 
+
+    [<AutoOpen>]
+    module ScreenReader =
+        let SpeakOptions =
+            Pattern.Config "SpeakOptions" {
+                Required = [
+                    "value", T<string>
+                ]
+                Optional = [
+                    "language", T<string>
+                ]
+            }
+
+        let ScreenReaderState =
+            Pattern.Config "ScreenReaderState" {
+                Required = [
+                    "value", T<bool>
+                ]
+                Optional = []
+            }
+
+        let StateChangeListener = ScreenReaderState?state ^-> T<unit>
+
+        let ScreenReaderPlugin =
+            Class "ScreenReaderPlugin"
+            |=> Nested [SpeakOptions; ScreenReaderState]
+            |+> Instance [
+                "isEnabled" => T<unit> ^-> T<Promise<bool>>
+                "speak" => SpeakOptions?options ^-> T<Promise<unit>>
+                "addListener" => T<string>?eventName * StateChangeListener?listener ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'stateChange' event."
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module Share =
+        let ShareOptions =
+            Pattern.Config "ShareOptions" {
+                Required = []
+                Optional = [
+                    "title", T<string>
+                    "text", T<string>
+                    "url", T<string>
+                    "files", !| T<string>
+                    "dialogTitle", T<string>
+                ]
+            }
+
+        let ShareResult =
+            Pattern.Config "ShareResult" {
+                Required = []
+                Optional = [
+                    "activityType", T<string>
+                ]
+            }
+
+        let CanShareResult =
+            Pattern.Config "CanShareResult" {
+                Required = [
+                    "value", T<bool>
+                ]
+                Optional = []
+            }
+
+        let SharePlugin =
+            Class "SharePlugin"
+            |=> Nested [ShareOptions;ShareResult;CanShareResult]
+            |+> Instance [
+                "canShare" => T<unit> ^-> T<Promise<_>>[CanShareResult]
+                "share" => ShareOptions?options ^-> T<Promise<_>>[ShareResult]
+            ]
+
+    [<AutoOpen>]
+    module SplashScreen = 
+        let ShowOptions =
+            Pattern.Config "ShowOptions" {
+                Required = []
+                Optional = [
+                    "autoHide", T<bool>
+                    "fadeInDuration", T<int>
+                    "fadeOutDuration", T<int>
+                    "showDuration", T<int>
+                ]
+            }
+
+        let HideOptions =
+            Pattern.Config "HideOptions" {
+                Required = []
+                Optional = [
+                    "fadeOutDuration", T<int>
+                ]
+            }
+
+        let SplashScreenConfig =
+            Pattern.Config "SplashScreenConfig" {
+                Required = []
+                Optional = [
+                    "launchShowDuration", T<int>
+                    "launchAutoHide", T<bool>
+                    "launchFadeOutDuration", T<int>
+                    "backgroundColor", T<string>
+                    "androidSplashResourceName", T<string>
+                    "androidScaleType", T<string> 
+                    "showSpinner", T<bool>
+                    "androidSpinnerStyle", T<string> 
+                    "iosSpinnerStyle", T<string> 
+                    "spinnerColor", T<string>
+                    "splashFullScreen", T<bool>
+                    "splashImmersive", T<bool>
+                    "layoutName", T<string>
+                    "useDialog", T<bool>
+                ]
+            }
+
+        let PluginsConfig =
+            Pattern.Config "PluginsConfig" {
+                Required = []
+                Optional = [
+                    "SplashScreen", SplashScreenConfig.Type
+                ]
+            }
+
+        let SplashScreenPlugin =
+            Class "SplashScreenPlugin"
+            |=> Nested [ShowOptions; HideOptions; SplashScreenConfig; PluginsConfig]
+            |+> Instance [
+                "show" => !? ShowOptions?options ^-> T<Promise<unit>>
+                "hide" => !? HideOptions?options ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module StatusBar = 
+        let Style = 
+            Pattern.EnumStrings "Style" ["DARK"; "LIGHT"; "DEFAULT"]
+
+        let Animation = 
+            Pattern.EnumStrings "Animation" ["NONE"; "SLIDE"; "FADE"]
+
+        let StyleOptions =
+            Pattern.Config "StyleOptions" {
+                Required = ["style", Style.Type]
+                Optional = []
+            }
+
+        let AnimationOptions =
+            Pattern.Config "AnimationOptions" {
+                Required = []
+                Optional = ["animation", Animation.Type]
+            }
+
+        let BackgroundColorOptions =
+            Pattern.Config "BackgroundColorOptions" {
+                Required = ["color", T<string>]
+                Optional = []
+            }
+
+        let StatusBarInfo =
+            Pattern.Config "StatusBarInfo" {
+                Required = []
+                Optional = [
+                    "visible", T<bool>
+                    "style", Style.Type
+                    "color", T<string>
+                    "overlays", T<bool>
+                ]
+            }
+
+        let SetOverlaysWebViewOptions =
+            Pattern.Config "SetOverlaysWebViewOptions" {
+                Required = ["overlay", T<bool>]
+                Optional = []
+            }
+
+        let StatusBarPlugin =
+            Class "StatusBarPlugin" 
+            |=> Nested [
+                SetOverlaysWebViewOptions; StatusBarInfo; BackgroundColorOptions
+                AnimationOptions; StyleOptions; Animation; Style
+            ]
+            |+> Instance [
+                "setStyle" => StyleOptions?options ^-> T<Promise<unit>>
+                "setBackgroundColor" => BackgroundColorOptions?options ^-> T<Promise<unit>>
+                "show" => !?AnimationOptions?options ^-> T<Promise<unit>>
+                "hide" => !?AnimationOptions?options ^-> T<Promise<unit>>
+                "getInfo" => T<unit> ^-> T<Promise<_>>[StatusBarInfo]
+                "setOverlaysWebView" => SetOverlaysWebViewOptions?options ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module TextZoom = 
+        let GetResult = 
+            Pattern.Config "GetResult" {
+                Required = [
+                    "value", T<int>
+                ]
+                Optional = []
+            }
+
+        let GetPreferredResult = 
+            Pattern.Config "GetPreferredResult" {
+                Required = [
+                    "value", T<int>
+                ]
+                Optional = []
+            }
+
+        let SetOptions = 
+            Pattern.Config "SetOptions" {
+                Required = [
+                    "value", T<int>
+                ]
+                Optional = []
+            }
+
+        let TextZoomPlugin =
+            Class "TextZoomPlugin"
+            |=> Nested [GetResult; GetPreferredResult; SetOptions]
+            |+> Instance [
+                "get" => T<unit> ^-> T<Promise<_>>[GetResult]
+                "getPreferred" => T<unit> ^-> T<Promise<_>>[GetPreferredResult]
+                "set" => SetOptions?options ^-> T<Promise<unit>>
+            ]
+
     let Capacitor =
         Class "Capacitor"
         |+> Static [
+            "TextZoomPlugin" =? TextZoomPlugin
+            |> Import "TextZoom" "@capacitor/text-zoom"
+            "StatusBarPlugin" =? StatusBarPlugin
+            |> Import "StatusBar" "@capacitor/status-bar"
+            "SplashScreenPlugin" =? SplashScreenPlugin
+            |> Import "SplashScreen" "@capacitor/splash-screen"
+            "SharePlugin" =? SharePlugin
+            |> Import "Share" "@capacitor/share"
+            "ScreenReaderPlugin" =? ScreenReaderPlugin
+            |> Import "ScreenReader" "@capacitor/screen-reader"
+            "ScreenOrientationPlugin" =? ScreenOrientationPlugin
+            |> Import "ScreenOrientation" "@capacitor/screen-orientation"
+            "PushNotificationsPlugin" =? PushNotificationsPlugin
+            |> Import "PushNotifications" "@capacitor/push-notifications"
             "PreferencesPlugin" =? PreferencesPlugin
             |> Import "Preferences" "@capacitor/preferences"
             "NetworkPlugin" =? NetworkPlugin
@@ -1822,6 +2247,13 @@ module Definition =
                 MotionPlugin
                 NetworkPlugin
                 PreferencesPlugin
+                PushNotificationsPlugin
+                ScreenOrientationPlugin
+                ScreenReaderPlugin
+                SharePlugin
+                SplashScreenPlugin
+                StatusBarPlugin
+                TextZoomPlugin
             ]
         ]
 
