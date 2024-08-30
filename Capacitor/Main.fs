@@ -563,7 +563,7 @@ module Definition =
 
         let CookiesPlugin = 
             Class "CookiesPlugin" 
-            |+> Instance [
+            |+> Instance [ 
                 "getCookies" => GetCookieOptions?options ^-> T<Promise<_>>[HttpCookieMap]
                 "setCookie" => SetCookieOptions?options ^-> T<Promise<unit>>
                 "deleteCookie" => DeleteCookieOptions?options ^-> T<Promise<unit>>
@@ -2714,6 +2714,8 @@ module Definition =
             |> Import "Camera" "@capacitor/camera"
             "Clipboard" =? ClipboardPlugin
             |> Import "Clipboard" "@capacitor/clipboard"
+            "Cookies" =? CookiesPlugin
+            |> Import "CliCookiespboard" "@capacitor/cookies"
             "Device" =? DevicePlugin
             |> Import "Device" "@capacitor/device"
             "Dialog" =? DialogPlugin
@@ -2722,41 +2724,41 @@ module Definition =
             |> Import "Filesystem" "@capacitor/filesystem"
             "Geolocation" =? GeolocationPlugin
             |> Import "Geolocation" "@capacitor/geolocation"
-            "GoogleMapsPlugin" =? GoogleMapsPlugin
+            "GoogleMaps" =? GoogleMapsPlugin
             |> Import "GoogleMaps" "@capacitor/google-maps"
             "Haptics" =? HapticsPlugin
             |> Import "Haptics" "@capacitor/haptics"
-            "HttpPlugin" =? HttpPlugin
+            "Http" =? HttpPlugin
             |> Import "Http" "@capacitor/http"
             "InAppBrowser" =? InAppBrowserPlugin
             |> Import "InAppBrowser" "@capacitor/inappbrowser"
             "Keyboard" =? KeyboardPlugin
             |> Import "Keyboard" "@capacitor/keyboard"
-            "LocalNotificationsPlugin" =? LocalNotificationsPlugin
+            "LocalNotifications" =? LocalNotificationsPlugin
             |> Import "LocalNotifications" "@capacitor/local-notifications"
             "Motion" =? MotionPlugin
             |> Import "Motion" "@capacitor/motion"
-            "NetworkPlugin" =? NetworkPlugin
+            "Network" =? NetworkPlugin
             |> Import "Network" "@capacitor/network"
-            "PreferencesPlugin" =? PreferencesPlugin
+            "Preferences" =? PreferencesPlugin
             |> Import "Preferences" "@capacitor/preferences"
-            "PushNotificationsPlugin" =? PushNotificationsPlugin
+            "PushNotifications" =? PushNotificationsPlugin
             |> Import "PushNotifications" "@capacitor/push-notifications"
-            "ScreenOrientationPlugin" =? ScreenOrientationPlugin
+            "ScreenOrientation" =? ScreenOrientationPlugin
             |> Import "ScreenOrientation" "@capacitor/screen-orientation"
-            "ScreenReaderPlugin" =? ScreenReaderPlugin
+            "ScreenReader" =? ScreenReaderPlugin
             |> Import "ScreenReader" "@capacitor/screen-reader"
-            "SharePlugin" =? SharePlugin
+            "Share" =? SharePlugin
             |> Import "Share" "@capacitor/share"
-            "SplashScreenPlugin" =? SplashScreenPlugin
+            "SplashScreen" =? SplashScreenPlugin
             |> Import "SplashScreen" "@capacitor/splash-screen"
-            "StatusBarPlugin" =? StatusBarPlugin
+            "StatusBar" =? StatusBarPlugin
             |> Import "StatusBar" "@capacitor/status-bar"
-            "TextZoomPlugin" =? TextZoomPlugin
+            "TextZoom" =? TextZoomPlugin
             |> Import "TextZoom" "@capacitor/text-zoom"
-            "ToastPlugin" =? ToastPlugin
+            "Toast" =? ToastPlugin
             |> Import "Toast" "@capacitor/toast"
-            "WatchPlugin" =? WatchPlugin
+            "Watch" =? WatchPlugin
             |> Import "Watch" "@capacitor/watch"
         ]
 
@@ -2776,6 +2778,7 @@ module Definition =
                 BrowserPlugin
                 CameraPlugin
                 ClipboardPlugin
+                CookiesPlugin
                 DevicePlugin
                 DialogPlugin
                 FilesystemPlugin
@@ -2824,6 +2827,9 @@ module Definition =
             ]
             Namespace "WebSharper.Capacitor.Clipboard" [
                 ReadResult; WriteOptions
+            ]
+            Namespace "WebSharper.Capacitor.Cookies" [
+                GetCookieOptions; SetCookieOptions; HttpCookieMap; DeleteCookieOptions; ClearCookieOptions
             ]
             Namespace "WebSharper.Capacitor.Device" [
                 LanguageTag; GetLanguageCodeResult; BatteryInfo; DeviceInfo; DevicePlatform; DeviceId; OperatingSystem
