@@ -62,7 +62,6 @@ module Definition =
 
         let ActionSheetPlugin = 
             Class "ActionSheetPlugin " 
-            |=> Nested [ShowActionsOptions; ShowActionsResult; ActionSheetButton; ActionSheetButtonStyle]
             |+> Instance [
                 "showActions" => ShowActionsOptions?options ^-> T<Promise<_>>[ShowActionsResult]
             ]
@@ -94,8 +93,7 @@ module Definition =
             }
 
         let AppLauncherPlugin  = 
-            Class "AppLauncherPlugin " 
-            |=> Nested [OpenURLOptions; OpenURLResult; CanOpenURLOptions; CanOpenURLResult]
+            Class "AppLauncherPlugin" 
             |+> Instance [
                 "canOpenUrl" => CanOpenURLOptions?options ^-> T<Promise<_>>[CanOpenURLResult]
                 "openUrl" => OpenURLOptions?options ^-> T<Promise<_>>[OpenURLResult]
@@ -163,11 +161,7 @@ module Definition =
         let BackButtonListener = BackButtonListenerEvent ^-> T<unit>
 
         let AppPlugin = 
-            Class "AppPlugin" 
-            |=> Nested [
-                BackButtonListenerEvent; RestoredListenerEvent; URLOpenListenerEvent
-                AppLaunchUrl; AppState; AppInfo
-            ]
+            Class "AppPlugin"
             |+> Instance [
                 "exitApp" => T<unit> ^-> T<Promise<unit>>
                 "getInfo" => T<unit> ^-> T<Promise<_>>[AppInfo]
@@ -242,10 +236,6 @@ module Definition =
 
         let BackgroundRunnerPlugin =
             Class "BackgroundRunnerPlugin"
-            |=> Nested [
-                BackgroundRunnerOptions; PluginsConfig; PermissionStatus
-                DispatchEventOptions; RequestPermissionOptions; API
-            ]
             |+> Instance [
                 "checkPermissions" => T<unit> ^-> T<Promise<obj>>
                 "requestPermissions" => RequestPermissionOptions?options ^-> T<Promise<obj>>
@@ -331,12 +321,7 @@ module Definition =
             }
 
         let BarcodeScannerPlugin = 
-            Class "BarcodeScannerPlugin" 
-            |=> Nested [
-                CapacitorBarcodeScannerOptions; WebOptions; AndroidScanningLibrary; CapacitorBarcodeScannerTypeHint
-                CapacitorBarcodeScannerScanResult; CapacitorBarcodeScannerAndroidScanningLibrary
-                CapacitorBarcodeScannerScanOrientation; CapacitorBarcodeScannerCameraDirection
-            ]
+            Class "BarcodeScannerPlugin"
             |+> Instance [
                 "scanBarcode" => CapacitorBarcodeScannerOptions?options ^-> T<Promise<_>>[CapacitorBarcodeScannerScanResult]
             ]
@@ -357,8 +342,7 @@ module Definition =
             }
 
         let BrowserPlugin = 
-            Class "BrowserPlugin" 
-            |=> Nested [OpenOptions]
+            Class "BrowserPlugin"
             |+> Instance [
                 "open" => OpenOptions?options ^-> T<Promise<unit>>
                 "close" => T<unit> ^-> T<Promise<unit>>
@@ -491,11 +475,7 @@ module Definition =
             }             
 
         let CameraPlugin = 
-            Class "CameraPlugin" 
-            |=> Nested [
-                ImageOptions; Photo; GalleryImageOptions; GalleryPhotos; PermissionStatus; CameraPluginPermissions
-                CameraPermissionState; CameraPermissionType; CameraResultType; CameraSource; CameraDirection; GalleryPhoto
-            ]
+            Class "CameraPlugin"
             |+> Instance [
                 "getPhoto" => ImageOptions?options ^-> T<Promise<_>>[Photo]
                 "pickImages" => GalleryImageOptions?options ^-> T<Promise<_>>[GalleryPhotos]
@@ -503,138 +483,6 @@ module Definition =
                 "getLimitedLibraryPhotos" => T<unit> ^-> T<Promise<_>>[GalleryPhotos]
                 "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
                 "requestPermissions" => !?CameraPluginPermissions?permissions ^-> T<Promise<_>>[PermissionStatus]
-            ]
-
-    [<AutoOpen>]
-    module Geolocation = 
-        let CallbackID = T<string>
-        
-        let Coordinates =
-            Pattern.Config "Coordinates" {
-                Required = [
-                    "latitude", T<float>
-                    "longitude", T<float>
-                    "accuracy", T<float>
-                ]
-                Optional = [
-                    "altitudeAccuracy", T<float>
-                    "altitude", T<float>
-                    "speed", T<float>
-                    "heading", T<float>
-                ]
-            }
-
-        let Position =
-            Pattern.Config "Position" {
-                Required = [
-                    "timestamp", T<int>
-                    "coords", Coordinates.Type
-                ]
-                Optional = []
-            }
-
-        let WatchPositionCallback = (Position + T<unit>) * !?T<obj> ^-> T<unit>
-
-        let GeolocationPermissionType =
-            Pattern.EnumStrings "GeolocationPermissionType" [
-                "location"
-                "coarseLocation"
-            ]
-
-        let PositionOptions =
-            Pattern.Config "PositionOptions" {
-                Required = []
-                Optional = [
-                    "enableHighAccuracy", T<bool>
-                    "timeout", T<int>
-                    "maximumAge", T<int>
-                ]
-            }
-
-        let ClearWatchOptions = 
-            Pattern.Config "ClearWatchOptions" {
-                Required = ["id", CallbackID]
-                Optional = []
-            }
-
-        let PermissionStatus = 
-            Pattern.Config "PermissionStatus" {
-                Required = [
-                    "location", PermissionState.Type
-                    "coarseLocation", PermissionState.Type
-                ]
-                Optional = []
-            }
-
-        let GeolocationPluginPermissions = 
-            Pattern.Config "GeolocationPluginPermissions" {
-                Required = ["permissions", !| GeolocationPermissionType]
-                Optional = []
-            }
-
-        let GeolocationPlugin = 
-            Class "GeolocationPlugin" 
-            |=> Nested [
-                GeolocationPluginPermissions; PermissionStatus; ClearWatchOptions; PositionOptions
-                GeolocationPermissionType; Position; Coordinates
-            ]
-            |+> Instance [
-                "getCurrentPosition" => !?PositionOptions?options ^-> T<Promise<_>>[Position]
-                "watchPosition" => PositionOptions?options * WatchPositionCallback?callback ^-> T<Promise<_>>[CallbackID]
-                "clearWatch" => ClearWatchOptions?options ^-> T<Promise<unit>>
-                "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
-                "requestPermissions" => !?GeolocationPluginPermissions?permissions ^-> T<Promise<_>>[PermissionStatus]
-            ]
-
-    [<AutoOpen>]
-    module Motion = 
-        let Acceleration = 
-            Pattern.Config "Acceleration" {
-                Required = []
-                Optional = [
-                    "x", T<double>
-                    "y", T<double>
-                    "z", T<double>
-                ]
-            }
-
-        let RotationRate = 
-            Pattern.Config "RotationRate" {
-                Required = []
-                Optional = [
-                    "alpha", T<double>
-                    "beta", T<double>
-                    "gamma", T<double>
-                ]
-            }
-
-        let AccelListenerEvent = 
-            Pattern.Config "AccelListenerEvent" {
-                Required = []
-                Optional = [
-                    "acceleration", Acceleration.Type
-                    "accelerationIncludingGravity", Acceleration.Type
-                    "rotationRate", RotationRate.Type
-                    "interval", T<int>
-                ]
-            }
-
-        let AccelListener = AccelListenerEvent ^-> T<unit>
-
-        let OrientationListener = RotationRate ^-> T<unit>
-
-        let OrientationListenerEvent = RotationRate
-
-        let MotionPlugin = 
-            Class "MotionPlugin"
-            |=> Nested [
-                OrientationListenerEvent; AccelListenerEvent; Acceleration
-            ]
-            |+> Instance [
-                "addListener" => T<string>?eventName * AccelListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "Listens for 'accel' event."
-                "addListener" => T<string>?evenName * OrientationListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
-                |> WithComment "Listens for 'orientation' event."
             ]
 
     [<AutoOpen>]
@@ -660,8 +508,7 @@ module Definition =
             }
 
         let ClipboardPlugin = 
-            Class "ClipboardPlugin" 
-            |=> Nested [ReadResult; WriteOptions]
+            Class "ClipboardPlugin"
             |+> Instance [
                 "write" => WriteOptions?options ^-> T<Promise<unit>>
                 "read" => T<unit> ^-> T<Promise<_>>[ReadResult]
@@ -742,10 +589,6 @@ module Definition =
 
         let DevicePlugin = 
             Class "DevicePlugin"
-            |=> Nested [
-                LanguageTag; GetLanguageCodeResult; BatteryInfo; DeviceInfo
-                DevicePlatform; DeviceId; OperatingSystem
-            ]
             |+> Instance [
                 "getId" => T<unit> ^-> T<Promise<_>>[DeviceId]
                 "getInfo" => T<unit> ^-> T<Promise<_>>[DeviceInfo]
@@ -808,10 +651,7 @@ module Definition =
             }
 
         let DialogPlugin = 
-            Class "DialogPlugin" 
-            |=> Nested [
-                ConfirmOptions; ConfirmResult; PromptOptions; PromptResult; AlertOptions
-            ]
+            Class "DialogPlugin"
             |+> Instance [
                 "alert" =>  AlertOptions?options ^-> T<Promise<unit>>
                 "prompt" =>  PromptOptions?options ^-> T<Promise<_>>[PromptResult]
@@ -1051,14 +891,7 @@ module Definition =
             }
 
         let FilesystemPlugin = 
-            Class "Filesystem" 
-            |=> Nested [
-                ReaddirResult; DownloadFileOptions; DownloadFileResult; PermissionStatus; CopyResult
-                StatOptions; StatResult; GetUriOptions; GetUriResult; ReaddirOptions; FileInfo
-                FileType; RmdirOptions; MkdirOptions; DeleteFileOptions; AppendFileOptions
-                WriteFileOptions; WriteFileResult; ReadFileOptions; Directory
-                ProgressStatus; CopyOptions; Encoding; ReadFileResult; 
-            ]
+            Class "Filesystem"
             |+> Instance [
                 "readFile" => ReadFileOptions?options ^-> T<Promise<_>>[ReadFileResult]
                 "writeFile" => WriteFileOptions?options ^-> T<Promise<_>>[WriteFileResult]
@@ -1076,6 +909,83 @@ module Definition =
                 "downloadFile" => DownloadFileOptions?options ^-> T<Promise<_>>[DownloadFileResult]
                 "addListener" => T<string>?eventName * ProgressListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module Geolocation = 
+        let CallbackID = T<string>
+        
+        let Coordinates =
+            Pattern.Config "Coordinates" {
+                Required = [
+                    "latitude", T<float>
+                    "longitude", T<float>
+                    "accuracy", T<float>
+                ]
+                Optional = [
+                    "altitudeAccuracy", T<float>
+                    "altitude", T<float>
+                    "speed", T<float>
+                    "heading", T<float>
+                ]
+            }
+
+        let Position =
+            Pattern.Config "Position" {
+                Required = [
+                    "timestamp", T<int>
+                    "coords", Coordinates.Type
+                ]
+                Optional = []
+            }
+
+        let WatchPositionCallback = (Position + T<unit>) * !?T<obj> ^-> T<unit>
+
+        let GeolocationPermissionType =
+            Pattern.EnumStrings "GeolocationPermissionType" [
+                "location"
+                "coarseLocation"
+            ]
+
+        let PositionOptions =
+            Pattern.Config "PositionOptions" {
+                Required = []
+                Optional = [
+                    "enableHighAccuracy", T<bool>
+                    "timeout", T<int>
+                    "maximumAge", T<int>
+                ]
+            }
+
+        let ClearWatchOptions = 
+            Pattern.Config "ClearWatchOptions" {
+                Required = ["id", CallbackID]
+                Optional = []
+            }
+
+        let PermissionStatus = 
+            Pattern.Config "PermissionStatus" {
+                Required = [
+                    "location", PermissionState.Type
+                    "coarseLocation", PermissionState.Type
+                ]
+                Optional = []
+            }
+
+        let GeolocationPluginPermissions = 
+            Pattern.Config "GeolocationPluginPermissions" {
+                Required = ["permissions", !| GeolocationPermissionType]
+                Optional = []
+            }
+
+        let GeolocationPlugin = 
+            Class "GeolocationPlugin"
+            |+> Instance [
+                "getCurrentPosition" => !?PositionOptions?options ^-> T<Promise<_>>[Position]
+                "watchPosition" => PositionOptions?options * WatchPositionCallback?callback ^-> T<Promise<_>>[CallbackID]
+                "clearWatch" => ClearWatchOptions?options ^-> T<Promise<unit>>
+                "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
+                "requestPermissions" => !?GeolocationPluginPermissions?permissions ^-> T<Promise<_>>[PermissionStatus]
             ]
 
     [<AutoOpen>]
@@ -1387,12 +1297,6 @@ module Definition =
 
         let GoogleMapsPlugin =
             Class "GoogleMapsPlugin"
-            |=> Nested [
-                CreateMapArgs; GoogleMapConfig; MyLocationButtonClickCallbackData; CircleClickCallbackData; PolygonClickCallbackData
-                MarkerClickCallbackData; MapClickCallbackData; PolylineCallbackData; ClusterClickCallbackData; MarkerCallbackData
-                CameraMoveStartedCallbackData; CameraIdleCallbackData; LatLngBounds; LatLngBoundsInterface; MapPadding; MapType
-                CameraConfig; Polyline; StyleSpan; Circle; Polygon; Marker; Point; Size; MapReadyCallbackData; LatLng; MapListenerCallback
-            ]
             |+> Instance [
                 "create" => CreateMapArgs?options * !?MapListenerCallback[MapReadyCallbackData]?callback ^-> T<Promise<_>>[T<obj>]
                 "enableTouch" => T<unit> ^-> T<Promise<unit>>
@@ -1479,10 +1383,7 @@ module Definition =
             }
 
         let HapticsPlugin = 
-            Class "HapticsPlugin" 
-            |=> Nested [
-                VibrateOptions; NotificationOptions; ImpactOptions; NotificationType; ImpactStyle                 
-            ]
+            Class "HapticsPlugin"
             |+> Instance [
                 "impact" => !?ImpactOptions ?options ^-> T<Promise<unit>>
                 "notification" => !?NotificationOptions?options ^-> T<Promise<unit>>
@@ -1490,6 +1391,66 @@ module Definition =
                 "selectionStart" => T<unit> ^-> T<Promise<unit>>
                 "selectionChanged" => T<unit> ^-> T<Promise<unit>>
                 "selectionEnd" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module Http = 
+        let HttpParams = 
+            Pattern.Config "HttpParams" {
+                Required = []
+                Optional = [
+                    "params", T<obj> 
+                ]
+            }
+
+        let HttpHeaders = 
+            Pattern.Config "HttpHeaders" {
+                Required = []
+                Optional = [
+                    "headers", T<obj> 
+                ]
+            }
+
+        let HttpResponse = 
+            Pattern.Config "HttpResponse" {
+                Required = []
+                Optional = [
+                    "data", T<obj>
+                    "status", T<int>
+                    "headers", HttpHeaders.Type
+                    "url", T<string>
+                ]
+            }
+
+        let HttpOptions = 
+            Pattern.Config "HttpOptions" {
+                Required = [
+                    "url", T<string>
+                ]
+                Optional = [
+                    "method", T<string>
+                    "params", HttpParams.Type
+                    "data", T<obj>
+                    "headers", HttpHeaders.Type
+                    "readTimeout", T<int>
+                    "connectTimeout", T<int>
+                    "disableRedirects", T<bool>
+                    "webFetchExtra", T<Request>
+                    "responseType", T<XMLHttpRequestResponseType>
+                    "shouldEncodeUrlParams", T<bool>
+                    "dataType", T<string>
+                ]
+            }
+
+        let HttpPlugin = 
+            Class "HttpPlugin"
+            |+> Instance [
+                "request" => HttpOptions?options ^-> T<Promise<_>>[HttpResponse]
+                "get" => HttpOptions?options ^-> T<Promise<_>>[HttpResponse]
+                "post" => HttpOptions?options ^-> T<Promise<_>>[HttpResponse]
+                "put" => HttpOptions?options ^-> T<Promise<_>>[HttpResponse]
+                "patch" => HttpOptions?options ^-> T<Promise<_>>[HttpResponse]
+                "delete" => HttpOptions?options ^-> T<Promise<_>>[HttpResponse]
             ]
 
     [<AutoOpen>]
@@ -1645,14 +1606,7 @@ module Definition =
             }
 
         let InAppBrowserPlugin = 
-            Class "InAppBrowserPlugin" 
-            |=> Nested [
-                OpenInWebViewParameterModel; WebViewOptions; OpenInSystemBrowserParameterModel
-                SystemBrowserOptions; OpenInDefaultParameterModel; iOSSystemBrowserOptions
-                AndroidSystemBrowserOptions; AndroidBottomSheet; iOSWebViewOptions
-                AndroidWebViewOptions; DismissStyle; AndroidAnimation; AndroidViewStyle
-                iOSAnimation; ToolbarPosition; iOSViewStyle
-            ]
+            Class "InAppBrowserPlugin"
             |+> Instance [
                 "openInWebView" => OpenInWebViewParameterModel?model ^-> T<Promise<unit>>
                 "openInSystemBrowser" => OpenInSystemBrowserParameterModel?model ^-> T<Promise<unit>>
@@ -1735,10 +1689,6 @@ module Definition =
 
         let KeyboardPlugin =
             Class "KeyboardPlugin"
-            |=> Nested [
-                PluginsConfig; KeyboardOptions; AccessoryBarOptions; ScrollOptions; KeyboardResize
-                KeyboardInfo; KeyboardResizeOptions; KeyboardStyleOptions; KeyboardStyle
-            ]
             |+> Instance [
                 "show" => T<unit> ^-> T<Promise<unit>>
                 "hide" => T<unit> ^-> T<Promise<unit>>
@@ -2057,13 +2007,6 @@ module Definition =
         
         let LocalNotificationsPlugin = 
             Class "LocalNotificationsPlugin"
-            |=> Nested [
-                DeleteChannelOptions; PluginsConfig; LocalNotificationsOptions; ActionPerformed; SettingsPermissionStatus
-                PermissionStatus; ListChannelsResult; Channel; DeliveredNotifications; DeliveredNotificationSchema
-                EnabledResult; CancelOptions; RegisterActionTypesOptions; ActionType; Action; PendingResult; Importance
-                PendingLocalNotificationSchema; ScheduleOptions; LocalNotificationSchema; Attachment; AttachmentOptions
-                Schedule; ScheduleOn; ScheduleResult; LocalNotificationDescriptor; Weekday; ScheduleEvery; Visibility
-            ]
             |+> Instance [
                 "schedule" => ScheduleOptions?options ^-> T<Promise<_>>[ScheduleResult]
                 "getPending" => T<unit> ^-> T<Promise<_>>[PendingResult]
@@ -2088,6 +2031,54 @@ module Definition =
             ]
 
     [<AutoOpen>]
+    module Motion = 
+        let Acceleration = 
+            Pattern.Config "Acceleration" {
+                Required = []
+                Optional = [
+                    "x", T<double>
+                    "y", T<double>
+                    "z", T<double>
+                ]
+            }
+
+        let RotationRate = 
+            Pattern.Config "RotationRate" {
+                Required = []
+                Optional = [
+                    "alpha", T<double>
+                    "beta", T<double>
+                    "gamma", T<double>
+                ]
+            }
+
+        let AccelListenerEvent = 
+            Pattern.Config "AccelListenerEvent" {
+                Required = []
+                Optional = [
+                    "acceleration", Acceleration.Type
+                    "accelerationIncludingGravity", Acceleration.Type
+                    "rotationRate", RotationRate.Type
+                    "interval", T<int>
+                ]
+            }
+
+        let AccelListener = AccelListenerEvent ^-> T<unit>
+
+        let OrientationListener = RotationRate ^-> T<unit>
+
+        let OrientationListenerEvent = RotationRate
+
+        let MotionPlugin = 
+            Class "MotionPlugin"
+            |+> Instance [
+                "addListener" => T<string>?eventName * AccelListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'accel' event."
+                "addListener" => T<string>?evenName * OrientationListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'orientation' event."
+            ]
+
+    [<AutoOpen>]
     module Network = 
         let ConnectionType =
             Pattern.EnumStrings "ConnectionType" ["wifi"; "cellular"; "none"; "unknown"]
@@ -2105,7 +2096,6 @@ module Definition =
 
         let NetworkPlugin =
             Class "NetworkPlugin"
-            |=> Nested [ConnectionType; ConnectionStatus]
             |+> Instance [
                 "getStatus" => T<unit> ^-> T<Promise<_>>[ConnectionStatus]
                 "addListener" => T<string>?eventName * ConnectionStatusChangeListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
@@ -2169,7 +2159,6 @@ module Definition =
 
         let PreferencesPlugin =
             Class "PreferencesPlugin"
-            |=> Nested [ConfigureOptions; GetOptions; GetResult; SetOptions; RemoveOptions; KeysResult; MigrateResult]
             |+> Instance [
                 "configure" => ConfigureOptions?options ^-> T<Promise<unit>>
                 "get" => GetOptions?options ^-> T<Promise<_>>[GetResult]
@@ -2310,10 +2299,6 @@ module Definition =
 
         let PushNotificationsPlugin =
             Class "PushNotificationsPlugin"
-            |=> Nested [
-                PresentationOption; Importance; Visibility; PermissionStatus; Channel; PushNotificationSchema; DeleteChannelArgs
-                ActionPerformed; Token; RegistrationError; DeliveredNotifications; ListChannelsResult;PluginsConfig
-            ]
             |+> Instance [
                 "register" => T<unit> ^-> T<Promise<unit>>
                 "unregister" => T<unit> ^-> T<Promise<unit>>
@@ -2368,7 +2353,6 @@ module Definition =
 
         let ScreenOrientationPlugin =
             Class "ScreenOrientationPlugin"
-            |=> Nested [OrientationLockType; OrientationLockOptions; ScreenOrientationResult]
             |+> Instance [
                 "orientation" => T<unit> ^-> T<Promise<_>>[ScreenOrientationResult]
                 "lock" => OrientationLockOptions?options ^-> T<Promise<unit>>
@@ -2410,7 +2394,6 @@ module Definition =
 
         let ScreenReaderPlugin =
             Class "ScreenReaderPlugin"
-            |=> Nested [SpeakOptions; ScreenReaderState; IsEnabledResult]
             |+> Instance [
                 "isEnabled" => T<unit> ^-> T<Promise<_>>[IsEnabledResult]
                 "speak" => SpeakOptions?options ^-> T<Promise<unit>>
@@ -2451,7 +2434,6 @@ module Definition =
 
         let SharePlugin =
             Class "SharePlugin"
-            |=> Nested [ShareOptions;ShareResult;CanShareResult]
             |+> Instance [
                 "canShare" => T<unit> ^-> T<Promise<_>>[CanShareResult]
                 "share" => ShareOptions?options ^-> T<Promise<_>>[ShareResult]
@@ -2509,7 +2491,6 @@ module Definition =
 
         let SplashScreenPlugin =
             Class "SplashScreenPlugin"
-            |=> Nested [ShowOptions; HideOptions; SplashScreenOptions; PluginsConfig]
             |+> Instance [
                 "show" => !? ShowOptions?options ^-> T<Promise<unit>>
                 "hide" => !? HideOptions?options ^-> T<Promise<unit>>
@@ -2559,11 +2540,7 @@ module Definition =
             }
 
         let StatusBarPlugin =
-            Class "StatusBarPlugin" 
-            |=> Nested [
-                SetOverlaysWebViewOptions; StatusBarInfo; BackgroundColorOptions
-                AnimationOptions; StyleOptions; Animation; Style
-            ]
+            Class "StatusBarPlugin"
             |+> Instance [
                 "setStyle" => StyleOptions?options ^-> T<Promise<unit>>
                 "setBackgroundColor" => BackgroundColorOptions?options ^-> T<Promise<unit>>
@@ -2601,7 +2578,6 @@ module Definition =
 
         let TextZoomPlugin =
             Class "TextZoomPlugin"
-            |=> Nested [GetResult; GetPreferredResult; SetOptions]
             |+> Instance [
                 "get" => T<unit> ^-> T<Promise<_>>[GetResult]
                 "getPreferred" => T<unit> ^-> T<Promise<_>>[GetPreferredResult]
@@ -2623,7 +2599,6 @@ module Definition =
 
         let ToastPlugin =
             Class "ToastPlugin"
-            |=> Nested [ShowOptions]
             |+> Instance [
                 "show" => ShowOptions?options ^-> T<Promise<unit>>
             ]
@@ -2656,7 +2631,6 @@ module Definition =
 
         let WatchPlugin =
             Class "WatchPlugin"
-            |=> Nested [CommandData; WatchUIOptions; WatchDataOptions]
             |+> Instance [
                 "addListener" => T<string>?eventName * ListenFunctionType CommandData?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "Listens for 'runCommand' event."
@@ -2667,64 +2641,66 @@ module Definition =
     let Capacitor =
         Class "Capacitor"
         |+> Static [
-            "GoogleMapsPlugin" =? GoogleMapsPlugin
-            |> Import "GoogleMaps" "@capacitor/google-maps"
-            "BackgroundRunnerPlugin" =? BackgroundRunnerPlugin
-            |> Import "BackgroundRunner" "@capacitor/background-runner"
-            "WatchPlugin" =? WatchPlugin
-            |> Import "Watch" "@capacitor/watch"
-            "ToastPlugin" =? ToastPlugin
-            |> Import "Toast" "@capacitor/toast"
-            "TextZoomPlugin" =? TextZoomPlugin
-            |> Import "TextZoom" "@capacitor/text-zoom"
-            "StatusBarPlugin" =? StatusBarPlugin
-            |> Import "StatusBar" "@capacitor/status-bar"
-            "SplashScreenPlugin" =? SplashScreenPlugin
-            |> Import "SplashScreen" "@capacitor/splash-screen"
-            "SharePlugin" =? SharePlugin
-            |> Import "Share" "@capacitor/share"
-            "ScreenReaderPlugin" =? ScreenReaderPlugin
-            |> Import "ScreenReader" "@capacitor/screen-reader"
-            "ScreenOrientationPlugin" =? ScreenOrientationPlugin
-            |> Import "ScreenOrientation" "@capacitor/screen-orientation"
-            "PushNotificationsPlugin" =? PushNotificationsPlugin
-            |> Import "PushNotifications" "@capacitor/push-notifications"
-            "PreferencesPlugin" =? PreferencesPlugin
-            |> Import "Preferences" "@capacitor/preferences"
-            "NetworkPlugin" =? NetworkPlugin
-            |> Import "Network" "@capacitor/network"
-            "LocalNotificationsPlugin" =? LocalNotificationsPlugin
-            |> Import "LocalNotifications" "@capacitor/local-notifications"
-            "Keyboard" =? KeyboardPlugin
-            |> Import "Keyboard" "@capacitor/keyboard"
-            "InAppBrowser" =? InAppBrowserPlugin
-            |> Import "InAppBrowser" "@capacitor/inappbrowser"
-            "Haptics" =? HapticsPlugin
-            |> Import "Haptics" "@capacitor/haptics"
-            "Filesystem" =? FilesystemPlugin
-            |> Import "Filesystem" "@capacitor/filesystem"
-            "Camera" =? CameraPlugin
-            |> Import "Camera" "@capacitor/camera"
-            "Motion" =? MotionPlugin
-            |> Import "Motion" "@capacitor/motion"
-            "App" =? AppPlugin
-            |> Import "App" "@capacitor/app"
             "ActionSheet" =? ActionSheetPlugin
             |> Import "ActionSheet" "@capacitor/action-sheet"
             "AppLauncher" =? AppLauncherPlugin
             |> Import "AppLauncher" "@capacitor/app-launcher"
-            "Geolocation" =? GeolocationPlugin
-            |> Import "Geolocation" "@capacitor/geolocation"
+            "App" =? AppPlugin
+            |> Import "App" "@capacitor/app"
+            "BackgroundRunnerPlugin" =? BackgroundRunnerPlugin
+            |> Import "BackgroundRunner" "@capacitor/background-runner"
             "BarcodeScanner" =? BarcodeScannerPlugin
             |> Import "BarcodeScanner" "@capacitor/barcode-scanner"
             "Browser" =? BrowserPlugin
             |> Import "Browser" "@capacitor/browser"
+            "Camera" =? CameraPlugin
+            |> Import "Camera" "@capacitor/camera"
             "Clipboard" =? ClipboardPlugin
             |> Import "Clipboard" "@capacitor/clipboard"
             "Device" =? DevicePlugin
             |> Import "Device" "@capacitor/device"
             "Dialog" =? DialogPlugin
             |> Import "Dialog" "@capacitor/dialog"
+            "Filesystem" =? FilesystemPlugin
+            |> Import "Filesystem" "@capacitor/filesystem"
+            "Geolocation" =? GeolocationPlugin
+            |> Import "Geolocation" "@capacitor/geolocation"
+            "GoogleMapsPlugin" =? GoogleMapsPlugin
+            |> Import "GoogleMaps" "@capacitor/google-maps"
+            "Haptics" =? HapticsPlugin
+            |> Import "Haptics" "@capacitor/haptics"
+            "HttpPlugin" =? HttpPlugin
+            |> Import "Http" "@capacitor/http"
+            "InAppBrowser" =? InAppBrowserPlugin
+            |> Import "InAppBrowser" "@capacitor/inappbrowser"
+            "Keyboard" =? KeyboardPlugin
+            |> Import "Keyboard" "@capacitor/keyboard"
+            "LocalNotificationsPlugin" =? LocalNotificationsPlugin
+            |> Import "LocalNotifications" "@capacitor/local-notifications"
+            "Motion" =? MotionPlugin
+            |> Import "Motion" "@capacitor/motion"
+            "NetworkPlugin" =? NetworkPlugin
+            |> Import "Network" "@capacitor/network"
+            "PreferencesPlugin" =? PreferencesPlugin
+            |> Import "Preferences" "@capacitor/preferences"
+            "PushNotificationsPlugin" =? PushNotificationsPlugin
+            |> Import "PushNotifications" "@capacitor/push-notifications"
+            "ScreenOrientationPlugin" =? ScreenOrientationPlugin
+            |> Import "ScreenOrientation" "@capacitor/screen-orientation"
+            "ScreenReaderPlugin" =? ScreenReaderPlugin
+            |> Import "ScreenReader" "@capacitor/screen-reader"
+            "SharePlugin" =? SharePlugin
+            |> Import "Share" "@capacitor/share"
+            "SplashScreenPlugin" =? SplashScreenPlugin
+            |> Import "SplashScreen" "@capacitor/splash-screen"
+            "StatusBarPlugin" =? StatusBarPlugin
+            |> Import "StatusBar" "@capacitor/status-bar"
+            "TextZoomPlugin" =? TextZoomPlugin
+            |> Import "TextZoom" "@capacitor/text-zoom"
+            "ToastPlugin" =? ToastPlugin
+            |> Import "Toast" "@capacitor/toast"
+            "WatchPlugin" =? WatchPlugin
+            |> Import "Watch" "@capacitor/watch"
         ]
 
     let Assembly =
@@ -2734,6 +2710,7 @@ module Definition =
                 PermissionState
                 PluginListenerHandle
                 PresentationStyle
+
                 ActionSheetPlugin
                 AppLauncherPlugin
                 AppPlugin
@@ -2748,6 +2725,7 @@ module Definition =
                 GeolocationPlugin
                 GoogleMapsPlugin
                 HapticsPlugin
+                HttpPlugin
                 InAppBrowserPlugin
                 KeyboardPlugin
                 LocalNotificationsPlugin
@@ -2763,6 +2741,118 @@ module Definition =
                 TextZoomPlugin
                 ToastPlugin
                 WatchPlugin
+            ]
+            Namespace "WebSharper.Capacitor.ActionSheet" [
+                ShowActionsOptions; ShowActionsResult; ActionSheetButton; ActionSheetButtonStyle
+            ]
+            Namespace "WebSharper.Capacitor.AppLauncher" [
+                OpenURLOptions; OpenURLResult; CanOpenURLOptions; CanOpenURLResult
+            ]
+            Namespace "WebSharper.Capacitor.App" [
+                BackButtonListenerEvent; RestoredListenerEvent; URLOpenListenerEvent; AppLaunchUrl; AppState; AppInfo
+            ]
+            Namespace "WebSharper.Capacitor.BackgroundRunner" [
+                BackgroundRunnerOptions; BackgroundRunner.PluginsConfig; BackgroundRunner.PermissionStatus; 
+                DispatchEventOptions; RequestPermissionOptions; API
+            ]
+            Namespace "WebSharper.Capacitor.BarcodeScanner" [
+                CapacitorBarcodeScannerOptions; WebOptions; AndroidScanningLibrary; CapacitorBarcodeScannerTypeHint
+                CapacitorBarcodeScannerScanResult; CapacitorBarcodeScannerAndroidScanningLibrary
+                CapacitorBarcodeScannerScanOrientation; CapacitorBarcodeScannerCameraDirection
+            ]
+            Namespace "WebSharper.Capacitor.Browser" [OpenOptions]
+            Namespace "WebSharper.Capacitor.Camera" [
+                ImageOptions; Photo; GalleryImageOptions; GalleryPhotos; Camera.PermissionStatus; CameraPluginPermissions
+                CameraPermissionState; CameraPermissionType; CameraResultType; CameraSource; CameraDirection; GalleryPhoto
+            ]
+            Namespace "WebSharper.Capacitor.Clipboard" [
+                ReadResult; WriteOptions
+            ]
+            Namespace "WebSharper.Capacitor.Device" [
+                LanguageTag; GetLanguageCodeResult; BatteryInfo; DeviceInfo; DevicePlatform; DeviceId; OperatingSystem
+            ]
+            Namespace "WebSharper.Capacitor.Dialog" [
+                ConfirmOptions; ConfirmResult; PromptOptions; PromptResult; AlertOptions
+            ]
+            Namespace "WebSharper.Capacitor.Filesystem" [
+                ReaddirResult; DownloadFileOptions; DownloadFileResult; Filesystem.PermissionStatus; CopyResult
+                StatOptions; StatResult; GetUriOptions; GetUriResult; ReaddirOptions; FileInfo
+                FileType; RmdirOptions; MkdirOptions; DeleteFileOptions; AppendFileOptions
+                WriteFileOptions; WriteFileResult; ReadFileOptions; Directory
+                ProgressStatus; CopyOptions; Encoding; ReadFileResult 
+            ]
+            Namespace "WebSharper.Capacitor.Geolocation" [
+                GeolocationPluginPermissions; Geolocation.PermissionStatus; ClearWatchOptions; PositionOptions
+                GeolocationPermissionType; Position; Coordinates
+            ]
+            Namespace "WebSharper.Capacitor.GoogleMaps" [
+                CreateMapArgs; GoogleMapConfig; MyLocationButtonClickCallbackData; CircleClickCallbackData; PolygonClickCallbackData
+                MarkerClickCallbackData; MapClickCallbackData; PolylineCallbackData; ClusterClickCallbackData; MarkerCallbackData
+                CameraMoveStartedCallbackData; CameraIdleCallbackData; LatLngBounds; LatLngBoundsInterface; MapPadding; MapType
+                CameraConfig; Polyline; StyleSpan; Circle; Polygon; Marker; Point; Size; MapReadyCallbackData; LatLng; MapListenerCallback
+            ]
+            Namespace "WebSharper.Capacitor.Haptics" [
+                VibrateOptions; NotificationOptions; ImpactOptions; NotificationType; ImpactStyle 
+            ]
+            Namespace "WebSharper.Capacitor.Http" [
+                HttpOptions; HttpResponse; HttpHeaders; HttpParams
+            ]
+            Namespace "WebSharper.Capacitor.InAppBrowser" [
+                OpenInWebViewParameterModel; WebViewOptions; OpenInSystemBrowserParameterModel
+                SystemBrowserOptions; OpenInDefaultParameterModel; iOSSystemBrowserOptions
+                AndroidSystemBrowserOptions; AndroidBottomSheet; iOSWebViewOptions
+                AndroidWebViewOptions; DismissStyle; AndroidAnimation; AndroidViewStyle
+                iOSAnimation; ToolbarPosition; iOSViewStyle
+            ]
+            Namespace "WebSharper.Capacitor.Keyboard" [
+                Keyboard.PluginsConfig; KeyboardOptions; AccessoryBarOptions; ScrollOptions; KeyboardResize
+                KeyboardInfo; KeyboardResizeOptions; KeyboardStyleOptions; KeyboardStyle
+            ]
+            Namespace "WebSharper.Capacitor.LocalNotifications" [
+                DeleteChannelOptions; LocalNotifications.PluginsConfig; LocalNotificationsOptions; LocalNotifications.ActionPerformed; SettingsPermissionStatus
+                LocalNotifications.PermissionStatus; LocalNotifications.ListChannelsResult; LocalNotifications.Channel; 
+                LocalNotifications.DeliveredNotifications; DeliveredNotificationSchema; LocalNotifications.Visibility
+                EnabledResult; CancelOptions; RegisterActionTypesOptions; ActionType; Action; PendingResult; LocalNotifications.Importance
+                PendingLocalNotificationSchema; ScheduleOptions; LocalNotificationSchema; Attachment; AttachmentOptions
+                Schedule; ScheduleOn; ScheduleResult; LocalNotificationDescriptor; Weekday; ScheduleEvery
+            ]
+            Namespace "WebSharper.Capacitor.Motion" [
+                OrientationListenerEvent; AccelListenerEvent; Acceleration
+            ]
+            Namespace "WebSharper.Capacitor.Network" [
+                ConnectionType; ConnectionStatus
+            ]
+            Namespace "WebSharper.Capacitor.Preferences" [
+                ConfigureOptions; GetOptions; Preferences.GetResult; Preferences.SetOptions; RemoveOptions; KeysResult; MigrateResult
+            ]
+            Namespace "WebSharper.Capacitor.PushNotifications" [
+                PresentationOption; Importance; Visibility; PushNotifications.PermissionStatus; Channel; PushNotificationSchema; DeleteChannelArgs
+                ActionPerformed; Token; RegistrationError; DeliveredNotifications; ListChannelsResult;PushNotifications.PluginsConfig
+            ]
+            Namespace "WebSharper.Capacitor.ScreenOrientation" [
+                OrientationLockType; OrientationLockOptions; ScreenOrientationResult
+            ]
+            Namespace "WebSharper.Capacitor.ScreenReader" [
+                SpeakOptions; ScreenReaderState; IsEnabledResult
+            ]
+            Namespace "WebSharper.Capacitor.Share" [
+                ShareOptions;ShareResult;CanShareResult
+            ]
+            Namespace "WebSharper.Capacitor.SplashScreen" [
+                SplashScreen.ShowOptions; HideOptions; SplashScreenOptions; SplashScreen.PluginsConfig
+            ]
+            Namespace "WebSharper.Capacitor.StatusBar" [
+                SetOverlaysWebViewOptions; StatusBarInfo; BackgroundColorOptions
+                AnimationOptions; StyleOptions; Animation; Style
+            ]
+            Namespace "WebSharper.Capacitor.TextZoom" [
+                GetResult; GetPreferredResult; SetOptions
+            ]
+            Namespace "WebSharper.Capacitor.Toast" [
+                Toast.ShowOptions
+            ]
+            Namespace "WebSharper.Capacitor.Watch" [
+                CommandData; WatchUIOptions; WatchDataOptions
             ]
         ]
 
