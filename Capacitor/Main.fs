@@ -172,7 +172,7 @@ module Definition =
                 "exitApp" => T<unit> ^-> T<Promise<unit>>
                 "getInfo" => T<unit> ^-> T<Promise<_>>[AppInfo]
                 "getState" => T<unit> ^-> T<Promise<_>>[AppState]
-                "getLaunchUrl" => T<unit> ^-> T<Promise<_>>[T<obj>]
+                "getLaunchUrl" => T<unit> ^-> T<Promise<obj>>
                 "minimizeApp" => T<unit> ^-> T<Promise<unit>>
                 "addListener" => T<string>?eventName * StateChangeListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "Listens for 'appStateChange' event."
@@ -185,6 +185,71 @@ module Definition =
                 "addListener" => T<string>?eventName * BackButtonListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "Listens for 'backButton' event."
                 "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module BackgroundRunner = 
+        let API = 
+            Pattern.EnumStrings "API" ["geolocation"; "notifications"]
+
+        let PermissionStatus = 
+            Pattern.Config "PermissionStatus" {
+                Required = []
+                Optional = [
+                    "geolocation", PermissionState.Type
+                    "notifications", PermissionState.Type
+                ]
+            }
+
+        let DispatchEventOptions = 
+            Pattern.Config "DispatchEventOptions" {
+                Required = []
+                Optional = [
+                    "label", T<string>
+                    "event", T<string>
+                    "details", T<obj>  
+                ]
+            }
+
+        let RequestPermissionOptions = 
+            Pattern.Config "RequestPermissionOptions" {
+                Required = [
+                    "apis", !| API 
+                ]
+                Optional = []
+            }
+
+        let BackgroundRunnerOptions = 
+            Pattern.Config "BackgroundRunnerOptions" {
+                Required = []
+                Optional = [
+                    "label", T<string>
+                    "src", T<string>
+                    "event", T<string>
+                    "repeat", T<bool>
+                    "interval", T<int>
+                    "autoStart", T<bool>
+                ]
+            }
+
+        let PluginsConfig  = 
+            Pattern.Config "PluginsConfig " {
+                Required = []
+                Optional = [
+                    "BackgroundRunner", BackgroundRunnerOptions.Type
+                ]
+            }
+
+        let BackgroundRunnerPlugin =
+            Class "BackgroundRunnerPlugin"
+            |=> Nested [
+                BackgroundRunnerOptions; PluginsConfig; PermissionStatus
+                DispatchEventOptions; RequestPermissionOptions; API
+            ]
+            |+> Instance [
+                "checkPermissions" => T<unit> ^-> T<Promise<obj>>
+                "requestPermissions" => RequestPermissionOptions?options ^-> T<Promise<obj>>
+                "dispatchEvent" => DispatchEventOptions?options ^-> T<Promise<obj>>
             ]
 
     [<AutoOpen>]
@@ -1011,6 +1076,366 @@ module Definition =
                 "downloadFile" => DownloadFileOptions?options ^-> T<Promise<_>>[DownloadFileResult]
                 "addListener" => T<string>?eventName * ProgressListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
+    module GoogleMaps = 
+        let MapType =
+            Pattern.EnumStrings "MapType" [
+                "Normal"
+                "Hybrid"
+                "Satellite"
+                "Terrain"
+                "None"
+            ]
+
+        let MapListenerCallback = Generic - fun t ->
+            Pattern.Config "MapListenerCallback" {
+                Required = [
+                    "data", t ^-> T<unit>
+                ]
+                Optional = []
+            }
+
+        let LatLng = 
+            Pattern.Config "LatLng" {
+                Required = [
+                    "lat", T<double> 
+                    "lng", T<double>   
+                ]
+                Optional = []
+            }
+
+        let MapReadyCallbackData = 
+            Pattern.Config "MapReadyCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                ]
+            }
+
+        let Size = 
+            Pattern.Config "Size" {
+                Required = [
+                    "width", T<int>
+                    "height", T<int>
+                ]
+                Optional = []
+            }
+
+        let Point = 
+            Pattern.Config "Point" {
+                Required = [
+                    "x", T<int>
+                    "y", T<int>
+                ]
+                Optional = []
+            }
+
+        let Marker = 
+            Pattern.Config "Marker" {
+                Required = []
+                Optional = [
+                    "coordinate", LatLng.Type
+                    "opacity", T<int>
+                    "title", T<string>
+                    "snippet", T<string>
+                    "isFlat", T<bool>
+                    "iconUrl", T<string>
+                    "iconSize", Size.Type
+                    "iconOrigin", Point.Type
+                    "iconAnchor", Point.Type
+                    "tintColor", T<obj>  
+                    "draggable", T<bool>
+                    "zIndex", T<int>
+                ]
+            }
+
+        let Polygon = 
+            Pattern.Config "Polygon" {
+                Required = []
+                Optional = [
+                    "strokeColor", T<string>
+                    "strokeOpacity", T<int>
+                    "strokeWeight", T<int>
+                    "fillColor", T<string>
+                    "fillOpacity", T<int>
+                    "geodesic", T<bool>
+                    "clickable", T<bool>
+                    "title", T<string>
+                    "tag", T<string>
+                ]
+            }
+
+        let Circle = 
+            Pattern.Config "Circle" {
+                Required = []
+                Optional = [
+                    "fillColor", T<string>
+                    "fillOpacity", T<int>
+                    "strokeColor", T<string>
+                    "strokeWeight", T<int>
+                    "geodesic", T<bool>
+                    "clickable", T<bool>
+                    "title", T<string>
+                    "tag", T<string>
+                ]
+            }
+
+        let StyleSpan = 
+            Pattern.Config "StyleSpan" {
+                Required = []
+                Optional = [
+                    "color", T<string>
+                    "segments", T<int>
+                ]
+            }
+            
+        let Polyline = 
+            Pattern.Config "Polyline" {
+                Required = []
+                Optional = [
+                    "strokeColor", T<string>
+                    "strokeOpacity", T<int>
+                    "strokeWeight", T<int>
+                    "geodesic", T<bool>
+                    "clickable", T<bool>
+                    "tag", T<string>
+                    "styleSpans", !| StyleSpan
+                ]
+            } 
+
+        let CameraConfig = 
+            Pattern.Config "CameraConfig" {
+                Required = []
+                Optional = [
+                    "coordinate", LatLng.Type
+                    "zoom", T<int>
+                    "bearing", T<int>
+                    "angle", T<int>
+                    "animate", T<bool>
+                    "animationDuration", T<int>
+                ]
+            } 
+
+        let MapPadding = 
+            Pattern.Config "MapPadding" {
+                Required = []
+                Optional = [
+                    "top", T<int>
+                    "left", T<int>
+                    "right", T<int>
+                    "bottom", T<int>
+                ]
+            }
+
+        let LatLngBoundsInterface = 
+            Pattern.Config "LatLngBoundsInterface" {
+                Required = [
+                    "southwest", LatLng.Type
+                    "center", LatLng.Type
+                    "northeast", LatLng.Type
+                ]
+                Optional = []
+            }
+
+        let LatLngBounds = 
+            Class "LatLngBounds"
+            |+> Instance [
+                "southwest" =@ LatLng
+                "center" =@ LatLng
+                "northeast" =@ LatLng
+                Constructor (LatLngBoundsInterface?bounds)
+                "contains" => LatLng?point ^-> T<Promise<bool>>
+                "extend" => LatLng?point ^-> T<Promise<_>>[TSelf]
+            ]
+
+        let CameraIdleCallbackData = 
+            Pattern.Config "CameraIdleCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                    "bounds", LatLngBounds.Type
+                    "bearing", T<int>
+                    "latitude", T<int>
+                    "longitude", T<int>
+                    "tilt", T<int>
+                    "zoom", T<int>
+                ]
+            }
+
+        let CameraMoveStartedCallbackData = 
+            Pattern.Config "CameraMoveStartedCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                    "isGesture", T<bool>
+                ]
+            }
+
+        let MarkerCallbackData = 
+            Pattern.Config "MarkerCallbackData" {
+                Required = []
+                Optional = [
+                    "markerId", T<string>
+                    "latitude", T<int>
+                    "longitude", T<int>
+                    "title", T<string>
+                    "snippet", T<string>
+                ]
+            }
+
+        let ClusterClickCallbackData = 
+            Pattern.Config "ClusterClickCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                    "latitude", T<int>
+                    "longitude", T<int>
+                    "size", T<int>
+                    "items", !| MarkerCallbackData
+                ]
+            }
+
+        let PolylineCallbackData = 
+            Pattern.Config "PolylineCallbackData" {
+                Required = []
+                Optional = [
+                    "polylineId", T<string>
+                    "tag", T<string>
+                ]
+            }
+
+        let MapClickCallbackData = 
+            Pattern.Config "MapClickCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                    "latitude", T<int>
+                    "longitude", T<int>
+                ]
+            }
+
+        let MarkerClickCallbackData = 
+            Pattern.Config "MarkerClickCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                ]
+            }
+
+        let PolygonClickCallbackData = 
+            Pattern.Config "PolygonClickCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                    "polygonId", T<string>
+                    "tag", T<string>
+                ]
+            }
+
+        let CircleClickCallbackData = 
+            Pattern.Config "CircleClickCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                    "circleId", T<string>
+                    "tag", T<string>
+                ]
+            }
+
+        let MyLocationButtonClickCallbackData = 
+            Pattern.Config "MyLocationButtonClickCallbackData" {
+                Required = []
+                Optional = [
+                    "mapId", T<string>
+                ]
+            }
+
+        let GoogleMapConfig = 
+            Pattern.Config "GoogleMapConfig" {
+                Required = []
+                Optional = [
+                    "width", T<int>
+                    "height", T<int>
+                    "x", T<int>
+                    "y", T<int>
+                    "center", LatLng.Type
+                    "zoom", T<int>
+                    "androidLiteMode", T<bool>
+                    "devicePixelRatio", T<int>
+                    "styles", !| T<obj> 
+                    "mapId", T<string>
+                    "androidMapId", T<string>
+                    "iOSMapId", T<string>
+                ]
+            }
+
+        let CreateMapArgs =
+            Pattern.Config "CreateMapArgs" {
+                Required = []
+                Optional = [
+                    "id", T<string>
+                    "apiKey", T<string>
+                    "config", GoogleMapConfig.Type
+                    "element", T<Dom.Element> 
+                    "forceCreate", T<bool>
+                    "region", T<string>
+                    "language", T<string>
+                ]
+        }
+
+        let GoogleMapsPlugin =
+            Class "GoogleMapsPlugin"
+            |=> Nested [
+                CreateMapArgs; GoogleMapConfig; MyLocationButtonClickCallbackData; CircleClickCallbackData; PolygonClickCallbackData
+                MarkerClickCallbackData; MapClickCallbackData; PolylineCallbackData; ClusterClickCallbackData; MarkerCallbackData
+                CameraMoveStartedCallbackData; CameraIdleCallbackData; LatLngBounds; LatLngBoundsInterface; MapPadding; MapType
+                CameraConfig; Polyline; StyleSpan; Circle; Polygon; Marker; Point; Size; MapReadyCallbackData; LatLng; MapListenerCallback
+            ]
+            |+> Instance [
+                "create" => CreateMapArgs?options * !?MapListenerCallback[MapReadyCallbackData]?callback ^-> T<Promise<_>>[T<obj>]
+                "enableTouch" => T<unit> ^-> T<Promise<unit>>
+                "disableTouch" => T<unit> ^-> T<Promise<unit>>
+                "enableClustering" => !?T<int>?minClusterSize ^-> T<Promise<unit>> 
+                "disableClustering" => T<unit> ^-> T<Promise<unit>>
+                "addMarker" => Marker?marker ^-> T<Promise<string>>
+                "addMarkers" => (!|Marker)?markers ^-> T<Promise<_>>[!|T<string>]
+                "removeMarker" => T<string>?id ^-> T<Promise<unit>>
+                "removeMarkers" => (!|T<string>)?ids ^-> T<Promise<unit>>
+                "addPolygons" => (!|Polygon)?polygons ^-> T<Promise<_>>[!|T<string>]  
+                "removePolygons" => (!|T<string>)?ids ^-> T<Promise<unit>>
+                "addCircles" => (!|Circle)?circles ^-> T<Promise<_>>[!|T<string>]
+                "removeCircles" => (!|T<string>)?ids ^-> T<Promise<unit>>
+                "addPolylines" => (!|Polyline)?polylines ^-> T<Promise<_>>[!|T<string>]
+                "removePolylines" => (!|T<string>)?ids ^-> T<Promise<unit>>
+                "destroy" => T<unit> ^-> T<Promise<unit>>
+                "setCamera" => CameraConfig?config ^-> T<Promise<unit>>
+                "getMapType" => T<unit> ^-> T<Promise<_>>[MapType]
+                "setMapType" => MapType?mapType ^-> T<Promise<unit>>
+                "enableIndoorMaps" => T<bool>?enable ^-> T<Promise<unit>>
+                "enableTrafficLayer" => T<bool>?enable ^-> T<Promise<unit>>
+                "enableAccessibilityElements" => T<bool>?enable ^-> T<Promise<unit>>
+                "enableCurrentLocation" => T<bool>?enable ^-> T<Promise<unit>>
+                "setPadding" => MapPadding?padding ^-> T<Promise<unit>>
+                "getMapBounds" => T<unit> ^-> T<Promise<_>>[LatLngBounds]
+                "fitBounds" => LatLngBounds?bounds * !?T<int>?padding ^-> T<Promise<unit>>
+                "setOnBoundsChangedListener" => !?MapListenerCallback[CameraIdleCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnCameraIdleListener" => !?MapListenerCallback[CameraIdleCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnCameraMoveStartedListener" => !?MapListenerCallback[CameraMoveStartedCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnClusterClickListener" => !?MapListenerCallback[ClusterClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnClusterInfoWindowClickListener" => !?MapListenerCallback[ClusterClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnInfoWindowClickListener" => !?MapListenerCallback[MarkerClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnMapClickListener" => !?MapListenerCallback[MapClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnMarkerClickListener" => !?MapListenerCallback[MarkerClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnPolygonClickListener" => !?MapListenerCallback[PolygonClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnCircleClickListener" => !?MapListenerCallback[CircleClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnPolylineClickListener" => !?MapListenerCallback[PolylineCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnMarkerDragStartListener" => !?MapListenerCallback[MarkerClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnMarkerDragListener" => !?MapListenerCallback[MarkerClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnMarkerDragEndListener" => !?MapListenerCallback[MarkerClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnMyLocationButtonClickListener" => !?MapListenerCallback[MyLocationButtonClickCallbackData]?callback ^-> T<Promise<unit>>
+                "setOnMyLocationClickListener" => !?MapListenerCallback[MapClickCallbackData]?callback ^-> T<Promise<unit>>
             ]
 
     [<AutoOpen>]
@@ -2053,8 +2478,8 @@ module Definition =
                 ]
             }
 
-        let SplashScreenConfig =
-            Pattern.Config "SplashScreenConfig" {
+        let SplashScreenOptions =
+            Pattern.Config "SplashScreenOptions" {
                 Required = []
                 Optional = [
                     "launchShowDuration", T<int>
@@ -2078,13 +2503,13 @@ module Definition =
             Pattern.Config "PluginsConfig" {
                 Required = []
                 Optional = [
-                    "SplashScreen", SplashScreenConfig.Type
+                    "SplashScreen", SplashScreenOptions.Type
                 ]
             }
 
         let SplashScreenPlugin =
             Class "SplashScreenPlugin"
-            |=> Nested [ShowOptions; HideOptions; SplashScreenConfig; PluginsConfig]
+            |=> Nested [ShowOptions; HideOptions; SplashScreenOptions; PluginsConfig]
             |+> Instance [
                 "show" => !? ShowOptions?options ^-> T<Promise<unit>>
                 "hide" => !? HideOptions?options ^-> T<Promise<unit>>
@@ -2242,6 +2667,10 @@ module Definition =
     let Capacitor =
         Class "Capacitor"
         |+> Static [
+            "GoogleMapsPlugin" =? GoogleMapsPlugin
+            |> Import "GoogleMaps" "@capacitor/google-maps"
+            "BackgroundRunnerPlugin" =? BackgroundRunnerPlugin
+            |> Import "BackgroundRunner" "@capacitor/background-runner"
             "WatchPlugin" =? WatchPlugin
             |> Import "Watch" "@capacitor/watch"
             "ToastPlugin" =? ToastPlugin
@@ -2308,6 +2737,7 @@ module Definition =
                 ActionSheetPlugin
                 AppLauncherPlugin
                 AppPlugin
+                BackgroundRunnerPlugin
                 BarcodeScannerPlugin
                 BrowserPlugin
                 CameraPlugin
@@ -2316,6 +2746,7 @@ module Definition =
                 DialogPlugin
                 FilesystemPlugin
                 GeolocationPlugin
+                GoogleMapsPlugin
                 HapticsPlugin
                 InAppBrowserPlugin
                 KeyboardPlugin
