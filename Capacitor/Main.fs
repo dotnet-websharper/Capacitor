@@ -515,6 +515,63 @@ module Definition =
             ]
 
     [<AutoOpen>]
+    module Cookies = 
+        let HttpCookieMap =
+            Pattern.Config "HttpCookieMap" {
+                Required = []
+                Optional = [
+                    "key", T<obj>
+                ]
+            }
+
+        let GetCookieOptions = 
+            Pattern.Config "GetCookieOptions" {
+                Required = []
+                Optional = [
+                    "url", T<string>
+                ]
+            }
+
+        let SetCookieOptions = 
+            Pattern.Config "SetCookieOptions" {
+                Required = []
+                Optional = [
+                    "url", T<string>
+                    "key", T<string>
+                    "value", T<string>
+                    "path", T<string>
+                    "expires", T<string>
+                ]
+            }
+
+        let DeleteCookieOptions = 
+            Pattern.Config "DeleteCookieOptions" {
+                Required = []
+                Optional = [
+                    "url", T<string>
+                    "key", T<string>
+                ]
+            }
+        
+        let ClearCookieOptions = 
+            Pattern.Config "ClearCookieOptions" {
+                Required = []
+                Optional = [
+                    "url", T<string>
+                ]
+            }
+
+        let CookiesPlugin = 
+            Class "CookiesPlugin" 
+            |+> Instance [
+                "getCookies" => GetCookieOptions?options ^-> T<Promise<_>>[HttpCookieMap]
+                "setCookie" => SetCookieOptions?options ^-> T<Promise<unit>>
+                "deleteCookie" => DeleteCookieOptions?options ^-> T<Promise<unit>>
+                "clearCookies" => ClearCookieOptions?options ^-> T<Promise<unit>>
+                "clearAllCookies" =>T<unit> ^-> T<Promise<unit>>
+            ]
+
+    [<AutoOpen>]
     module Device = 
         let OperatingSystem = 
             Pattern.EnumStrings "OperatingSystem" [
