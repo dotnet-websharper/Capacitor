@@ -12,12 +12,13 @@
 /paket-files/
 .vscode/
 .idea/
-*.userwebsharper.log
-/Capacitor*/bin
-/Capacitor*/obj
-/Capacitor*/node*
-/Capacitor*/Properties
-/Capacitor*/wwwroot/Content
-/Capacitor*/wwwroot/dist
-/Capacitor*/.vs
+*.user
+websharper.log
+/WebSharper.Capacitor*/bin
+/WebSharper.Capacitor*/obj
+/WebSharper.Capacitor*/node*
+/WebSharper.Capacitor*/Properties
+/WebSharper.Capacitor*/wwwroot/Content
+/WebSharper.Capacitor*/wwwroot/dist
+/WebSharper.Capacitor*/.vs
 
