@@ -69,6 +69,7 @@ jobs:
 
       - name: Build app
         run: |
+          dotnet tool restore
           dotnet build
           npx vite build
         working-directory: ./WebSharper.Capacitor.Sample
