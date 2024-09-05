@@ -2715,7 +2715,7 @@ module Definition =
             "Clipboard" =? ClipboardPlugin
             |> Import "Clipboard" "@capacitor/clipboard"
             "Cookies" =? CookiesPlugin
-            |> Import "CliCookiespboard" "@capacitor/cookies"
+            |> Import "CliCookiespboard" "@capacitor/core"
             "Device" =? DevicePlugin
             |> Import "Device" "@capacitor/device"
             "Dialog" =? DialogPlugin

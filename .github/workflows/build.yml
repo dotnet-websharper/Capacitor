@@ -31,7 +31,7 @@ jobs:
       # Install project dependencies, including Capacitor
       - name: Install dependencies
         run: npm install
-        working-directory: ./Capacitor.Sample
+        working-directory: ./WebSharper.Capacitor.Sample
 
       # Install the latest LTS Java JDK 17 (the current LTS as of 2024)
       - name: Set up JDK 17
@@ -39,6 +39,16 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Install Paket as global tool
+        run: dotnet tool install paket --global
+
+      - name: Add credentials for Paket
+        run:
+          paket config
+            add-credentials https://nuget.pkg.github.com/dotnet-websharper/index.json
+            --username intellifactory-gh 
+            --password ${{ secrets.PAT_PACKAGE }}
 
       - name: Add GitHub registry NuGet source
         run: 
@@ -61,21 +71,21 @@ jobs:
         run: |
           dotnet build
           npx vite build
-        working-directory: ./Capacitor.Sample
+        working-directory: ./WebSharper.Capacitor.Sample
 
       # Add the Android platform to the Capacitor project
       - name: Add Android platform
         run: |
           npx cap add android
           npx cap sync
-        working-directory: ./Capacitor.Sample
+        working-directory: ./WebSharper.Capacitor.Sample
 
       # Build the APK using Gradle
       - name: Build Android APK
         run: |
           cd android
           ./gradlew assembleDebug
-        working-directory: ./Capacitor.Sample
+        working-directory: ./WebSharper.Capacitor.Sample
 
       # - name: List files
       #   run: ls -aR > filelist.txt
@@ -85,7 +95,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
-          path: Capacitor.Sample/android/app/build/outputs/apk/debug/app-debug.apk
+          path: WebSharper.Capacitor.Sample/android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Build Android APK
         run: |
@@ -97,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release.apk
-          path: Capacitor.Sample/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          path: WebSharper.Capacitor.Sample/android/app/build/outputs/apk/release/app-release-unsigned.apk
 
       # - name: Upload Filelist
       #   uses: actions/upload-artifact@v3

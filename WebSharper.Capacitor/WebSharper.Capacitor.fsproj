@@ -8,6 +8,41 @@
     <Company>IntelliFactory</Company>
     <Copyright>(c) 2023 IntelliFactory</Copyright>
   </PropertyGroup>
+  <PropertyGroup>
+    <NpmDependencies>
+      <NpmPackage Name="@capacitor/action-sheet" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/app-launcher" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/app" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/background-runner" Version="gt= 1.1.0 lt 2.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/barcode-scanner" Version="gt= 1.0.1 lt 2.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/browser" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/camera" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/clipboard" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/core" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/device" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/dialog" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/filesystem" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/geolocation" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/google-maps" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/haptics" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/http" Version="gt= 0.0.2 lt 1.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/inappbrowser" Version="gt= 1.0.1 lt 2.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/keyboard" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/local-notifications" Version="gt= 6.1.0 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/motion" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/network" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/preferences" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/push-notifications" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/screen-orientation" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/screen-reader" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/share" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/splash-screen" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/status-bar" Version="gt= 6.0.1 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/text-zoom" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/toast" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
+      <NpmPackage Name="@capacitor/watch" Version="gt= 0.1.12 lt 7.0.0" ResolutionStrategy="Max" />
+    </NpmDependencies>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="Main.fs" />
     <None Include="wsconfig.json" />
