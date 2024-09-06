@@ -2715,7 +2715,7 @@ module Definition =
             "Clipboard" =? ClipboardPlugin
             |> Import "Clipboard" "@capacitor/clipboard"
             "Cookies" =? CookiesPlugin
-            |> Import "CliCookiespboard" "@capacitor/core"
+            |> Import "CapacitorCookies" "@capacitor/core"
             "Device" =? DevicePlugin
             |> Import "Device" "@capacitor/device"
             "Dialog" =? DialogPlugin
@@ -2729,7 +2729,7 @@ module Definition =
             "Haptics" =? HapticsPlugin
             |> Import "Haptics" "@capacitor/haptics"
             "Http" =? HttpPlugin
-            |> Import "Http" "@capacitor/http"
+            |> Import "CapacitorHttp" "@capacitor/core"
             "InAppBrowser" =? InAppBrowserPlugin
             |> Import "InAppBrowser" "@capacitor/inappbrowser"
             "Keyboard" =? KeyboardPlugin

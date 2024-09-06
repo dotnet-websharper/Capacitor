@@ -25,6 +25,20 @@ module Client =
         return image
     }
 
+    let writeToClipboard () = promise {
+        let! clipboard = Capacitor.Clipboard.Write(Clipboard.WriteOptions(String = "Hello World!"))
+        return clipboard
+    }
+
+    let setCookies () = promise {
+        let! setCookies = Capacitor.Cookies.SetCookie(Cookies.SetCookieOptions(
+            Url = "http://example.com'",
+            Key = "language",
+            Value = "en"
+        ))
+        return setCookies
+    }
+
     [<SPAEntryPoint>]
     let Main () =
         let newName = Var.Create ""
@@ -43,6 +57,20 @@ module Client =
             .TakePhoto(fun _ ->
                 async {
                     return! takePicture().Then(fun image -> Var.Set newName <| image.Base64String.Substring(0, 20)).AsAsync()
+                }
+                |> Async.Start
+            )
+            .WriteClipboard(fun _ ->
+                async {
+                    printfn "Successfully write 'Hello World!' to clipboard"
+                    return! writeToClipboard().Then(fun _ -> Var.Set newName <| "Successfully write 'Hello World!' to clipboard").AsAsync()
+                }
+                |> Async.Start
+            )
+            .SetCookies(fun _ ->
+                async {
+                    printfn "Successfully Set Cookies"
+                    return! writeToClipboard().Then(fun _ -> Var.Set newName <| "Successfully Set Cookies").AsAsync()
                 }
                 |> Async.Start
             )

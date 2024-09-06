@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@capacitor/clipboard": "^6.0.1"
+  }
+}
