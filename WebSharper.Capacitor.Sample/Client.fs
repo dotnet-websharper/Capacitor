@@ -39,6 +39,23 @@ module Client =
         return setCookies
     }
 
+    let showAlert() = promise {
+        let! alert = Capacitor.Dialog.Alert(Dialog.AlertOptions(
+            Title = "Stop",
+            Message = "this is an error"
+        ))
+        return alert
+    }
+
+    let showConfirm () = promise {
+        let! value = Capacitor.Dialog.Confirm(Dialog.ConfirmOptions(
+            Title = "Confirm",
+            Message = "Are you sure you'd like to press the red button?"
+        ))
+
+        return value
+    }
+
     [<SPAEntryPoint>]
     let Main () =
         let newName = Var.Create ""
@@ -71,6 +88,20 @@ module Client =
                 async {
                     printfn "Successfully Set Cookies"
                     return! writeToClipboard().Then(fun _ -> Var.Set newName <| "Successfully Set Cookies").AsAsync()
+                }
+                |> Async.Start
+            )
+            .ShowAlert(fun _ ->
+                async {
+                    printfn "Successfully Show Alert"
+                    return! showAlert().Then(fun alert -> Var.Set newName <| "Successfully Show Alert").AsAsync()
+                }
+                |> Async.Start
+            )
+            .ShowConfirm(fun _ ->
+                async {
+                    printfn "Successfully Show Confirm"
+                    return! showConfirm().Then(fun confirm -> Var.Set newName <| "Successfully Show Confirm").AsAsync()
                 }
                 |> Async.Start
             )

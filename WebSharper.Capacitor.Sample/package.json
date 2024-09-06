@@ -11,7 +11,9 @@
   "dependencies": {
     "@capacitor/android": "^6.1.2",
     "@capacitor/camera": "^6.0.2",
-    "@capacitor/core": "^6.1.2"
+    "@capacitor/clipboard": "^6.0.1",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/dialog": "^6.0.1"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2",
