@@ -2695,9 +2695,120 @@ module Definition =
                 "updateWatchData" => WatchDataOptions?options ^-> T<Promise<unit>>
             ]
 
+    [<AutoOpen>]
+    module NativeBiometric = 
+        let BiometryType =
+            Pattern.EnumStrings "BiometryType" [
+                "NONE"
+                "TOUCH_ID"
+                "FACE_ID"
+                "FINGERPRINT"
+                "FACE_AUTHENTICATION"
+                "IRIS_AUTHENTICATION"
+                "MULTIPLE"
+            ]
+
+        let BiometricAuthError =
+            Pattern.EnumInlines "BiometricAuthError" [
+                "UNKNOWN_ERROR", "0"
+                "BIOMETRICS_UNAVAILABLE", "1"
+                "USER_LOCKOUT", "2"
+                "BIOMETRICS_NOT_ENROLLED", "3"
+                "USER_TEMPORARY_LOCKOUT", "4"
+                "AUTHENTICATION_FAILED", "10"
+                "APP_CANCEL", "11"
+                "INVALID_CONTEXT", "12"
+                "NOT_INTERACTIVE", "13"
+                "PASSCODE_NOT_SET", "14"
+                "SYSTEM_CANCEL", "15"
+                "USER_CANCEL", "16"
+                "USER_FALLBACK", "17"
+            ]
+
+        let Credentials =
+            Pattern.Config "Credentials" {
+                Required = [
+                    "username", T<string>
+                    "password", T<string>
+                ]
+                Optional = []
+            }
+
+        let IsAvailableOptions =
+            Pattern.Config "IsAvailableOptions" {
+                Required = []
+                Optional = [
+                    "useFallback", T<bool>
+                ]
+            }
+
+        let AvailableResult =
+            Pattern.Config "AvailableResult" {
+                Required = [
+                    "isAvailable", T<bool>
+                    "biometryType", BiometryType.Type
+                ]
+                Optional = [
+                    "errorCode", T<int>
+                ]
+            }
+
+        let BiometricOptions =
+            Pattern.Config "BiometricOptions" {
+                Required = []
+                Optional = [
+                    "reason", T<string>
+                    "title", T<string>
+                    "subtitle", T<string>
+                    "description", T<string>
+                    "negativeButtonText", T<string>
+                    "useFallback", T<bool>
+                    "fallbackTitle", T<string>
+                    "maxAttempts", T<int>
+                ]
+            }
+
+        let GetCredentialOptions =
+            Pattern.Config "GetCredentialOptions" {
+                Required = [
+                    "server", T<string>
+                ]
+                Optional = []
+            }
+
+        let SetCredentialOptions =
+            Pattern.Config "SetCredentialOptions" {
+                Required = [
+                    "username", T<string>
+                    "password", T<string>
+                    "server", T<string>
+                ]
+                Optional = []
+            }
+
+        let DeleteCredentialOptions =
+            Pattern.Config "DeleteCredentialOptions" {
+                Required = [
+                    "server", T<string>
+                ]
+                Optional = []
+            }
+
+        let NativeBiometricPlugin =
+            Class "NativeBiometricPlugin"
+            |+> Instance [
+                "isAvailable" => !?IsAvailableOptions?options ^-> T<Promise<_>>[AvailableResult]
+                "verifyIdentity" => !?BiometricOptions?options ^-> T<Promise<unit>>
+                "getCredentials" => GetCredentialOptions?options ^-> T<Promise<_>>[Credentials]
+                "setCredentials" => SetCredentialOptions?options ^-> T<Promise<unit>>
+                "deleteCredentials" => DeleteCredentialOptions?options ^-> T<Promise<unit>>
+            ]
+
     let Capacitor =
         Class "Capacitor"
         |+> Static [
+            "NativeBiometric" =? NativeBiometricPlugin
+            |> Import "NativeBiometric" "capacitor-native-biometric"
             "ActionSheet" =? ActionSheetPlugin
             |> Import "ActionSheet" "@capacitor/action-sheet"
             "AppLauncher" =? AppLauncherPlugin
@@ -2770,6 +2881,7 @@ module Definition =
                 PluginListenerHandle
                 PresentationStyle
 
+                NativeBiometricPlugin
                 ActionSheetPlugin
                 AppLauncherPlugin
                 AppPlugin
@@ -2801,6 +2913,10 @@ module Definition =
                 TextZoomPlugin
                 ToastPlugin
                 WatchPlugin
+            ]
+            Namespace "WebSharper.Capacitor.NativeBiometric" [
+                DeleteCredentialOptions; SetCredentialOptions; GetCredentialOptions; BiometricOptions 
+                IsAvailableOptions; Credentials; BiometricAuthError; BiometryType; AvailableResult
             ]
             Namespace "WebSharper.Capacitor.ActionSheet" [
                 ShowActionsOptions; ShowActionsResult; ActionSheetButton; ActionSheetButtonStyle
