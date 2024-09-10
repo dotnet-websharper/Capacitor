@@ -12,22 +12,15 @@
     <script type="module" src="./Content/WebSharper.Capacitor.Sample.head.js"></script>
 </head>
 <body>
-    <h1>My list of unique people</h1>
+    <h1>List of Capacitor Tests</h1>
     <div id="main" ws-children-template="Main">
-        <ul ws-hole="ListContainer">
-            <li ws-template="ListItem">${Name}</li>
-        </ul>
-        <div>
-            <input ws-var="Name" placeholder="Name" />
-            <button ws-onclick="Add">Add</button>
-            <div>You are about to add: ${Name}</div>
-        </div>
         <div>
             <h3>Camera Test</h3>
             <button ws-onclick="TakePhoto">Take Photo</button>
         </div>
         <div>
             <h3>Clipboard Test</h3>
+            <input ws-var="ClipboardValue" />
             <button ws-onclick="WriteClipboard">Write Clipboard</button>
         </div>
         <div>
@@ -38,6 +31,21 @@
             <h3>Dialog Test</h3>
             <button ws-onclick="ShowAlert">Show Alert</button>
             <button ws-onclick="ShowConfirm">Show Confirm</button>
+        </div>
+        <div>
+            <h3>Preferences Test</h3>
+            <input ws-var="PreferencesValue" />
+            <button ws-onclick="Save">Save</button>
+            <button ws-onclick="Get">Get</button>
+        </div>
+        <div>
+            <h3>Local Notification Test</h3>
+            <button ws-onclick="Notification">Notification</button>
+            <button ws-onclick="DeliveredNotification">Delivered Notification</button>
+        </div>
+        <div>
+            <h3>Auth Test</h3>
+            <button ws-onclick="LogIn">Log in</button>
         </div>
     </div>
     <script type="module" src="./Content/WebSharper.Capacitor.Sample.min.js"></script>

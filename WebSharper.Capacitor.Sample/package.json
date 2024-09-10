@@ -13,7 +13,11 @@
     "@capacitor/camera": "^6.0.2",
     "@capacitor/clipboard": "^6.0.1",
     "@capacitor/core": "^6.1.2",
-    "@capacitor/dialog": "^6.0.1"
+    "@capacitor/dialog": "^6.0.1",
+    "@capacitor/geolocation": "^6.0.1",
+    "@capacitor/inappbrowser": "^1.0.1",
+    "@capacitor/local-notifications": "^6.1.0",
+    "@capacitor/preferences": "^6.0.2"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2",
