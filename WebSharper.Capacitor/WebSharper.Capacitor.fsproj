@@ -10,6 +10,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <NpmDependencies>
+	  <NpmPackage Name="capacitor-native-biometric" Version="gt= 4.2.0 lt 5.0.0" ResolutionStrategy="Max" />
       <NpmPackage Name="@capacitor/action-sheet" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
       <NpmPackage Name="@capacitor/app-launcher" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />
       <NpmPackage Name="@capacitor/app" Version="gt= 6.0.2 lt 7.0.0" ResolutionStrategy="Max" />

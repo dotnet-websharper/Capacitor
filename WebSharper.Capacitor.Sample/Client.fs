@@ -124,7 +124,9 @@ module Client =
         let! deliver = Capacitor.LocalNotifications.GetDeliveredNotifications() 
         return deliver
     }
+    
 
+    
     [<SPAEntryPoint>]
     let Main () =
         let preferencesValue = Var.Create ""
