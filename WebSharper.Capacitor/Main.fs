@@ -2696,119 +2696,93 @@ module Definition =
             ]
 
     [<AutoOpen>]
-    module NativeBiometric = 
+    module BiometricAuth = 
         let BiometryType =
             Pattern.EnumStrings "BiometryType" [
-                "NONE"
-                "TOUCH_ID"
-                "FACE_ID"
-                "FINGERPRINT"
-                "FACE_AUTHENTICATION"
-                "IRIS_AUTHENTICATION"
-                "MULTIPLE"
+                "none"
+                "touchId"
+                "faceId"
+                "fingerprintAuthentication"
+                "faceAuthentication"
+                "irisAuthentication"
             ]
 
-        let BiometricAuthError =
-            Pattern.EnumInlines "BiometricAuthError" [
-                "UNKNOWN_ERROR", "0"
-                "BIOMETRICS_UNAVAILABLE", "1"
-                "USER_LOCKOUT", "2"
-                "BIOMETRICS_NOT_ENROLLED", "3"
-                "USER_TEMPORARY_LOCKOUT", "4"
-                "AUTHENTICATION_FAILED", "10"
-                "APP_CANCEL", "11"
-                "INVALID_CONTEXT", "12"
-                "NOT_INTERACTIVE", "13"
-                "PASSCODE_NOT_SET", "14"
-                "SYSTEM_CANCEL", "15"
-                "USER_CANCEL", "16"
-                "USER_FALLBACK", "17"
+        let AndroidBiometryStrength =
+            Pattern.EnumStrings "AndroidBiometryStrength" [
+                "weak"
+                "strong"
             ]
 
-        let Credentials =
-            Pattern.Config "Credentials" {
-                Required = [
-                    "username", T<string>
-                    "password", T<string>
-                ]
-                Optional = []
-            }
+        let BiometryErrorType =
+            Pattern.EnumStrings "BiometryErrorType" [
+                "none"
+                "appCancel"
+                "authenticationFailed"
+                "invalidContext"
+                "notInteractive"
+                "passcodeNotSet"
+                "systemCancel"
+                "userCancel"
+                "userFallback"
+                "biometryLockout"
+                "biometryNotAvailable"
+                "biometryNotEnrolled"
+                "noDeviceCredential"
+            ]
 
-        let IsAvailableOptions =
-            Pattern.Config "IsAvailableOptions" {
-                Required = []
-                Optional = [
-                    "useFallback", T<bool>
-                ]
-            }
-
-        let AvailableResult =
-            Pattern.Config "AvailableResult" {
-                Required = [
-                    "isAvailable", T<bool>
-                    "biometryType", BiometryType.Type
-                ]
-                Optional = [
-                    "errorCode", T<int>
-                ]
-            }
-
-        let BiometricOptions =
-            Pattern.Config "BiometricOptions" {
+        let AuthenticateOptions =
+            Pattern.Config "AuthenticateOptions" {
                 Required = []
                 Optional = [
                     "reason", T<string>
-                    "title", T<string>
-                    "subtitle", T<string>
-                    "description", T<string>
-                    "negativeButtonText", T<string>
-                    "useFallback", T<bool>
-                    "fallbackTitle", T<string>
-                    "maxAttempts", T<int>
+                    "cancelTitle", T<string>
+                    "allowDeviceCredential", T<bool>
+                    "iosFallbackTitle", T<string>
+                    "androidTitle", T<string>
+                    "androidSubtitle", T<string>
+                    "androidConfirmationRequired", T<bool>
+                    "androidBiometryStrength", AndroidBiometryStrength.Type
                 ]
             }
 
-        let GetCredentialOptions =
-            Pattern.Config "GetCredentialOptions" {
+        let CheckBiometryResult =
+            Pattern.Config "CheckBiometryResult" {
                 Required = [
-                    "server", T<string>
+                    "isAvailable", T<bool>
+                    "strongBiometryIsAvailable", T<bool>
+                    "biometryType", BiometryType.Type
+                    "biometryTypes", !| BiometryType.Type
+                    "deviceIsSecure", T<bool>
+                    "reason", T<string>
+                    "code", BiometryErrorType.Type
                 ]
-                Optional = []
+                Optional = [
+                    "strongReason", T<string>
+                    "strongCode", BiometryErrorType.Type
+                ]
             }
 
-        let SetCredentialOptions =
-            Pattern.Config "SetCredentialOptions" {
-                Required = [
-                    "username", T<string>
-                    "password", T<string>
-                    "server", T<string>
-                ]
-                Optional = []
-            }
+        let ResumeListener = CheckBiometryResult?info ^-> T<unit>
 
-        let DeleteCredentialOptions =
-            Pattern.Config "DeleteCredentialOptions" {
-                Required = [
-                    "server", T<string>
-                ]
-                Optional = []
-            }
+        let SetBiometryType = BiometryType + T<string> + !|BiometryType
 
-        let NativeBiometricPlugin =
-            Class "NativeBiometricPlugin"
+        let BiometricAuthPlugin =
+            Class "BiometricAuthPlugin"
             |+> Instance [
-                "isAvailable" => !?IsAvailableOptions?options ^-> T<Promise<_>>[AvailableResult]
-                "verifyIdentity" => !?BiometricOptions?options ^-> T<Promise<unit>>
-                "getCredentials" => GetCredentialOptions?options ^-> T<Promise<_>>[Credentials]
-                "setCredentials" => SetCredentialOptions?options ^-> T<Promise<unit>>
-                "deleteCredentials" => DeleteCredentialOptions?options ^-> T<Promise<unit>>
+                "checkBiometry" => T<unit> ^-> T<Promise<_>>[CheckBiometryResult]
+                "setBiometryType" => SetBiometryType?``type`` ^-> T<Promise<unit>>
+                "setBiometryIsEnrolled" => T<bool>?isSecure ^-> T<Promise<unit>>
+                "setDeviceIsSecure" => T<bool>?isSecure ^-> T<Promise<unit>>
+                "authenticate" => !?AuthenticateOptions?options ^-> T<Promise<unit>>
+                "addResumeListener" => ResumeListener?listener ^-> T<Promise<_>>[PluginListenerHandle]
             ]
+
 
     let Capacitor =
         Class "Capacitor"
         |+> Static [
-            "NativeBiometric" =? NativeBiometricPlugin
-            |> Import "NativeBiometric" "capacitor-native-biometric"
+            "BiometricAuth" =? BiometricAuthPlugin
+            |> Import "BiometricAuth" "@aparajita/capacitor-biometric-auth"
             "ActionSheet" =? ActionSheetPlugin
             |> Import "ActionSheet" "@capacitor/action-sheet"
             "AppLauncher" =? AppLauncherPlugin
@@ -2881,7 +2855,7 @@ module Definition =
                 PluginListenerHandle
                 PresentationStyle
 
-                NativeBiometricPlugin
+                BiometricAuthPlugin
                 ActionSheetPlugin
                 AppLauncherPlugin
                 AppPlugin
@@ -2914,9 +2888,9 @@ module Definition =
                 ToastPlugin
                 WatchPlugin
             ]
-            Namespace "WebSharper.Capacitor.NativeBiometric" [
-                DeleteCredentialOptions; SetCredentialOptions; GetCredentialOptions; BiometricOptions 
-                IsAvailableOptions; Credentials; BiometricAuthError; BiometryType; AvailableResult
+            Namespace "WebSharper.Capacitor.BiometricAuth" [
+                CheckBiometryResult; BiometryType; AuthenticateOptions
+                AndroidBiometryStrength; BiometryErrorType
             ]
             Namespace "WebSharper.Capacitor.ActionSheet" [
                 ShowActionsOptions; ShowActionsResult; ActionSheetButton; ActionSheetButtonStyle

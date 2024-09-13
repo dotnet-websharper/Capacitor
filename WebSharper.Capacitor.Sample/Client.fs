@@ -125,8 +125,6 @@ module Client =
         return deliver
     }
     
-
-    
     [<SPAEntryPoint>]
     let Main () =
         let preferencesValue = Var.Create ""
@@ -185,7 +183,7 @@ module Client =
             )
             .Notification(fun _ -> 
                 async {
-                    return! scheduleNotification().Then(fun notification -> printfn $"Scheduled notification complete").AsAsync()
+                    return! scheduleNotification().Then(fun _ -> printfn $"Scheduled notification complete").AsAsync()
                 }
                 |> Async.Start
             )
