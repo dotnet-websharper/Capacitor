@@ -18,122 +18,115 @@ module Client =
             "John"
             "Paul"
         ]
-
-    let takePicture () = promise {
-        let options = Camera.ImageOptions(Camera.CameraResultType.Base64)
-        let! image = Capacitor.Camera.GetPhoto(options)
-        return image
-    }
-
-    let writeToClipboard value = promise {
-        let! clipboard = Capacitor.Clipboard.Write(Clipboard.WriteOptions(String = $"{value}"))
-        return clipboard
-    }
-
-    let setCookies () = promise {
-        let! setCookies = Capacitor.Cookies.SetCookie(Cookies.SetCookieOptions(
-            Url = "http://example.com'",
-            Key = "language",
-            Value = "en"
-        ))
-        return setCookies
-    }
-
-    let showAlert() = promise {
-        let! alert = Capacitor.Dialog.Alert(Dialog.AlertOptions(
-            Title = "Stop",
-            Message = "this is an error"
-        ))
-        return alert
-    }
-
-    let showConfirm () = promise {
-        let! value = Capacitor.Dialog.Confirm(Dialog.ConfirmOptions(
-            Title = "Confirm",
-            Message = "Are you sure you'd like to press the red button?"
-        ))
-        return value
-    }
-
-    let save value = promise {
-        let! token = Capacitor.Preferences.Set(Preferences.SetOptions(
-            key = "auth_token",
-            value = value
-        ))
-        return token
-    }
-
-    let get() = promise {
-        let! token = Capacitor.Preferences.Get(Preferences.GetOptions(
-            key = "auth_token"
-        ))
-        return token
-    }
-
     [<AutoOpen>]
-    module AuthTest = 
-        type User (name: string, password: string) = 
-            member x.Name = name
-            member x.Password = password
-
-        let saveToken token = promise {
-            Capacitor.Preferences.Set(Preferences.SetOptions(
-                key = "auth_token",
-                value = token
-            )) |> ignore
+    module CameraTest =
+        let takePicture () = promise {
+            let options = Camera.ImageOptions(Camera.CameraResultType.Base64)
+            let! image = Capacitor.Camera.GetPhoto(options)
+            return image
         }
 
-        let getToken() = promise {
-            let! value = Capacitor.Preferences.Get(Preferences.GetOptions(
-                key = "auth_token"
+    [<AutoOpen>]
+    module ClipboardTest =
+        let writeToClipboard value = promise {
+            let! clipboard = Capacitor.Clipboard.Write(Clipboard.WriteOptions(String = $"{value}"))
+            return clipboard
+        }
+
+    [<AutoOpen>]
+    module CookiesTest = 
+        let setCookies () = promise {
+            let! setCookies = Capacitor.Cookies.SetCookie(Cookies.SetCookieOptions(
+                Url = "http://example.com'",
+                Key = "language",
+                Value = "en"
+            ))
+            return setCookies
+        }
+
+    [<AutoOpen>]
+    module DialogTest = 
+        let showAlert() = promise {
+            let! alert = Capacitor.Dialog.Alert(Dialog.AlertOptions(
+                Title = "Stop",
+                Message = "this is an error"
+            ))
+            return alert
+        }
+        let showConfirm () = promise {
+            let! value = Capacitor.Dialog.Confirm(Dialog.ConfirmOptions(
+                Title = "Confirm",
+                Message = "Are you sure you'd like to press the red button?"
             ))
             return value
         }
 
-        let login() = promise {
-            let data = User(name = "Got", password = "password")
-            let! response = Capacitor.Http.Post(Http.HttpOptions(
-                url = "http://localhost:5173/",
-                Data = data
+    [<AutoOpen>]
+    module PreferencesTest =
+        let save value = promise {
+            let! token = Capacitor.Preferences.Set(Preferences.SetOptions(
+                key = "auth_token",
+                value = value
             ))
-
-            if (response.Status = 200) then
-                let token = response?data?token
-                Capacitor.Dialog.Alert(Dialog.AlertOptions(Message = $"Logged in, token: {token}")) |> ignore
-                do! saveToken token  
-            else 
-                Capacitor.Dialog.Alert(Dialog.AlertOptions(Message = $"Login failed: {response}")) |> ignore
+            return token
         }
 
-    let scheduleNotification() = promise {
-        let notificationOptions = LocalNotifications.ScheduleOptions(
-            Notifications = [|LocalNotifications.LocalNotificationSchema(
-            Id = 1,
-            Title = "Reminder Notification",
-            Body = "Explore new variety and offers",
-            LargeBody = "Get 30% discounts on new products",
-            SummaryText = "Exciting offers"
-        )|]
-        )
+        let get() = promise {
+            let! token = Capacitor.Preferences.Get(Preferences.GetOptions(
+                key = "auth_token"
+            ))
+            return token
+        }
 
-        let! notification = Capacitor.Capacitor.LocalNotifications.Schedule(notificationOptions) 
-        return notification
-    }
+    [<AutoOpen>]
+    module AuthTest = 
+        let login() = promise {
+            Capacitor.BiometricAuth.Authenticate(BiometricAuth.AuthenticateOptions(
+                Reason = "Please authenticate",
+                CancelTitle = "Cancel",
+                AllowDeviceCredential = true,
+                IosFallbackTitle = "Use passcode",
+                AndroidTitle = "Biometric login",
+                AndroidSubtitle = "Log in using biometric authentication",
+                AndroidConfirmationRequired = false,
+                AndroidBiometryStrength = BiometricAuth.AndroidBiometryStrength.Weak
+            )) |> ignore
+        } 
 
-    let getDeliveredNotification() = promise {
-        let! deliver = Capacitor.LocalNotifications.GetDeliveredNotifications() 
-        return deliver
-    }
+    [<AutoOpen>]
+    module LocalNotificationTest =
+        let scheduleNotification() = promise {
+            let notificationOptions = LocalNotifications.ScheduleOptions(
+                Notifications = [|LocalNotifications.LocalNotificationSchema(
+                Id = 1,
+                Title = "Reminder Notification",
+                Body = "Explore new variety and offers",
+                LargeBody = "Get 30% discounts on new products",
+                SummaryText = "Exciting offers"
+            )|]
+            )
+
+            let! notification = Capacitor.Capacitor.LocalNotifications.Schedule(notificationOptions) 
+            return notification
+        }
+
+        let getDeliveredNotification() = promise {
+            let! deliver = Capacitor.LocalNotifications.GetDeliveredNotifications() 
+            return deliver
+        }
     
     [<SPAEntryPoint>]
     let Main () =
         let preferencesValue = Var.Create ""
         let clipboardValue = Var.Create ""
+        let cameraOutput = Var.Create ""
 
         IndexTemplate.Main()
+            .Name(cameraOutput)
             .TakePhoto(fun _ ->
                 async {
-                    return! takePicture().Then(fun image -> printfn $"Photo image: {image.Base64String.Substring(0, 20)}" ).AsAsync()
+                    
+                    return! takePicture().Then(fun image -> Var.Set cameraOutput <| $"{image.Base64String.Substring(0, 20)}" ).AsAsync()
                 }
                 |> Async.Start
             )
@@ -177,7 +170,7 @@ module Client =
             )
             .LogIn(fun _ -> 
                 async {
-                    return! login().Then(fun _ -> printfn "").AsAsync()
+                    return! login().Then(fun _ -> printfn "Finger print log in").AsAsync()
                 }
                 |> Async.Start
             )

@@ -14,9 +14,18 @@
 <body>
     <h1>List of Capacitor Tests</h1>
     <div id="main" ws-children-template="Main">
+        <ul ws-hole="ListContainer">
+            <li ws-template="ListItem">${Name}</li>
+        </ul>
+        <div>
+            <input ws-var="Name" placeholder="Name" />
+            <button ws-onclick="Add">Add</button>
+            <div>You are about to add: ${Name}</div>
+        </div>
         <div>
             <h3>Camera Test</h3>
             <button ws-onclick="TakePhoto">Take Photo</button>
+            <p>${cameraOutput}</p>
         </div>
         <div>
             <h3>Clipboard Test</h3>
