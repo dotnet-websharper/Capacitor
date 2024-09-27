@@ -118,25 +118,28 @@ module Client =
     [<SPAEntryPoint>]
     let Main () =
         let preferencesValue = Var.Create ""
+        let preferenceSavedValue = Var.Create ""
+        let preferencesOutput = Var.Create ""
         let clipboardValue = Var.Create ""
+        let writeClipboardOutput = Var.Create ""
         let cameraOutput = Var.Create ""
 
         IndexTemplate.Main()
-            .Name(cameraOutput)
             .TakePhoto(fun _ ->
                 async {
-                    
                     return! takePicture().Then(fun image -> Var.Set cameraOutput <| $"{image.Base64String.Substring(0, 20)}" ).AsAsync()
                 }
                 |> Async.Start
             )
+            .cameraOutput(cameraOutput.V)
             .ClipboardValue(clipboardValue)
             .WriteClipboard(fun _ ->
                 async {
-                    return! writeToClipboard(clipboardValue.Value).Then(fun _ -> printfn $"Successfully write '{clipboardValue.Value}' to clipboard").AsAsync()
+                    return! writeToClipboard(clipboardValue.Value).Then(fun _ -> Var.Set writeClipboardOutput <| $"Successfully write '{clipboardValue.Value}' to clipboard").AsAsync()
                 }
                 |> Async.Start
             )
+            .writeClipboardOutput(writeClipboardOutput.V)
             .SetCookies(fun _ ->
                 async {
                     return! setCookies().Then(fun _ -> printfn "Successfully Set Cookies").AsAsync()
@@ -158,16 +161,18 @@ module Client =
             .PreferencesValue(preferencesValue)
             .Save(fun _ -> 
                 async {
-                    return! save(preferencesValue.Value).Then(fun _ -> printfn "Save value Successfully").AsAsync()
+                    return! save(preferencesValue.Value).Then(fun _ -> Var.Set preferenceSavedValue <| $"Save '{preferencesValue.Value}' Successfully").AsAsync()
                 }
                 |> Async.Start
             )
+            .PreferencesSavedValue(preferenceSavedValue.V)
             .Get(fun _ -> 
                 async {
-                    return! get().Then(fun token -> printfn $"Value: {token.Value}").AsAsync()
+                    return! get().Then(fun token -> Var.Set preferencesOutput <| $"Value: {token.Value}").AsAsync()
                 }
                 |> Async.Start
             )
+            .PreferencesOutput(preferencesOutput.V)
             .LogIn(fun _ -> 
                 async {
                     return! login().Then(fun _ -> printfn "Finger print log in").AsAsync()

@@ -948,7 +948,7 @@ module Definition =
             }
 
         let FilesystemPlugin = 
-            Class "Filesystem"
+            Class "FilesystemPlugin"
             |+> Instance [
                 "readFile" => ReadFileOptions?options ^-> T<Promise<_>>[ReadFileResult]
                 "writeFile" => WriteFileOptions?options ^-> T<Promise<_>>[WriteFileResult]
