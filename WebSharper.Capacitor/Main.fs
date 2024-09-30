@@ -61,7 +61,7 @@ module Definition =
             }
 
         let ActionSheetPlugin = 
-            Class "ActionSheetPlugin " 
+            Class "ActionSheetPlugin" 
             |+> Instance [
                 "showActions" => ShowActionsOptions?options ^-> T<Promise<_>>[ShowActionsResult]
             ]
@@ -227,7 +227,7 @@ module Definition =
             }
 
         let PluginsConfig  = 
-            Pattern.Config "PluginsConfig " {
+            Pattern.Config "PluginsConfig" {
                 Required = []
                 Optional = [
                     "BackgroundRunner", BackgroundRunnerOptions.Type

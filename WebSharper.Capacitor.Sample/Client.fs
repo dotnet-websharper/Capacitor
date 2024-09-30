@@ -62,7 +62,7 @@ module Client =
         }
 
     [<AutoOpen>]
-    module PreferencesTest =
+    module PreferencesTest =    
         let save value = promise {
             let! token = Capacitor.Preferences.Set(Preferences.SetOptions(
                 key = "auth_token",
@@ -123,6 +123,7 @@ module Client =
         let clipboardValue = Var.Create ""
         let writeClipboardOutput = Var.Create ""
         let cameraOutput = Var.Create ""
+        let logInOutput = Var.Create ""     
 
         IndexTemplate.Main()
             .TakePhoto(fun _ ->
@@ -175,10 +176,11 @@ module Client =
             .PreferencesOutput(preferencesOutput.V)
             .LogIn(fun _ -> 
                 async {
-                    return! login().Then(fun _ -> printfn "Finger print log in").AsAsync()
+                    return! login().Then(fun _ -> Var.Set logInOutput <| "Finger print log in").AsAsync()
                 }
                 |> Async.Start
             )
+            .LogInOutput(logInOutput.V)
             .Notification(fun _ -> 
                 async {
                     return! scheduleNotification().Then(fun _ -> printfn $"Scheduled notification complete").AsAsync()
