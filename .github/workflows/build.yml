@@ -84,7 +84,7 @@ jobs:
       - name: Set version
         run: |
           npm install -g capacitor-set-version
-          npx capacitor-set-version set:android -v 1.0.0 -b ${{ github.run_id }} ./WebSharper.Capacitor.Sample
+          npx capacitor-set-version set:android -v 1.0.0 -b ${{ github.run_number }} ./WebSharper.Capacitor.Sample
 
       # Build the APK using Gradle
       - name: Build Android APK
