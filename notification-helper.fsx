@@ -36,12 +36,14 @@ let message: Message =
     }
 
 async {
-    let files = System.IO.Directory.EnumerateFiles("artifacts")
+    let files = System.IO.Directory.GetDirectories("./artifacts")
     let files =
         files
-        |> Seq.map (fun file ->
-            System.IO.Path.GetFileName(file), System.IO.File.ReadAllBytes(file)
+        |> Seq.map (fun dirPath ->
+            let v = System.IO.DirectoryInfo dirPath
+            v.Name, System.IO.File.ReadAllBytes(System.IO.Path.Combine(dirPath, "app-debug.apk"))
         )
+
     let serializedMessage = JsonSerializer.Serialize message
     printfn "%s" serializedMessage
     use multiFormData = new MultipartFormDataContent()
