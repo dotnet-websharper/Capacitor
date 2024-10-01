@@ -36,13 +36,21 @@ let message: Message =
     }
 
 async {
-    let! file = System.IO.File.ReadAllBytesAsync("app-debug.apk") |> Async.AwaitTask
+    let files = System.IO.Directory.EnumerateFiles("artifacts")
+    let files =
+        files
+        |> Seq.map (fun file ->
+            System.IO.Path.GetFileName(file), System.IO.File.ReadAllBytes("app-debug.apk")
+        )
     let serializedMessage = JsonSerializer.Serialize message
     printfn "%s" serializedMessage
     use multiFormData = new MultipartFormDataContent()
     use content = new StringContent(serializedMessage, Encoding.UTF8, "application/json")
     multiFormData.Add(content, "payload_json")
-    multiFormData.Add(new ByteArrayContent(file), "file1", "app-debug.apk")
+    files
+    |> Seq.iteri (fun i (fname, data) ->
+        multiFormData.Add(new ByteArrayContent(data), sprintf "file%d" (i+1), sprintf "%s.apk" fname)
+    )
     let! response = client.PostAsync(url, multiFormData) |> Async.AwaitTask
     if response.IsSuccessStatusCode then
         ()

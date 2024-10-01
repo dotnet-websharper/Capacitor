@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v2
 
@@ -19,7 +20,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Download latest artifact
-        run: gh run download -R dotnet-websharper/capacitor -n app-debug.apk
+        run: gh run download -R dotnet-websharper/capacitor -p app-debug* -D artifacts
         env:
           GH_TOKEN: ${{ github.token }}
 
