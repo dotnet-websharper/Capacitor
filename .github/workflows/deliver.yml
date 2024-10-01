@@ -20,11 +20,12 @@ jobs:
 
       - name: Download latest artifact
         run: gh run download -R dotnet-websharper/capacitor -n app-debug.apk
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Send notification
         run: dotnet fsi ./notification-helper.fsx
         env:
           DISCORD_PACKAGE_FEED: ${{ secrets.DISCORD_PACKAGE_FEED }}
           DISCORD_THREAD: ${{ secrets.DISCORD_THREAD }}
-          GH_TOKEN: ${{ github.token }}
         shell: bash
