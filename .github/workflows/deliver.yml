@@ -26,4 +26,5 @@ jobs:
         env:
           DISCORD_PACKAGE_FEED: ${{ secrets.DISCORD_PACKAGE_FEED }}
           DISCORD_THREAD: ${{ secrets.DISCORD_THREAD }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
