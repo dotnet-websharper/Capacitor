@@ -51,7 +51,7 @@ async {
     multiFormData.Add(content, "payload_json")
     files
     |> Seq.iteri (fun i (fname, data) ->
-        multiFormData.Add(new ByteArrayContent(data), sprintf "file%d" (i+1), sprintf "%s.apk" fname)
+        multiFormData.Add(new ByteArrayContent(data), sprintf "file%d" (i+1), sprintf "%s" fname)
     )
     let! response = client.PostAsync(url, multiFormData) |> Async.AwaitTask
     if response.IsSuccessStatusCode then
