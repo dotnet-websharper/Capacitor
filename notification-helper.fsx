@@ -43,7 +43,7 @@ async {
     use content = new StringContent(serializedMessage, Encoding.UTF8, "application/json")
     multiFormData.Add(content, "payload_json")
     multiFormData.Add(new ByteArrayContent(file), "file1", "app-debug.apk")
-    let! response = client.PostAsync(hookurl, multiFormData) |> Async.AwaitTask
+    let! response = client.PostAsync(url, multiFormData) |> Async.AwaitTask
     if response.IsSuccessStatusCode then
         ()
     else
