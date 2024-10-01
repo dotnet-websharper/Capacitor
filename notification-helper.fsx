@@ -40,7 +40,7 @@ async {
     let files =
         files
         |> Seq.map (fun file ->
-            System.IO.Path.GetFileName(file), System.IO.File.ReadAllBytes("app-debug.apk")
+            System.IO.Path.GetFileName(file), System.IO.File.ReadAllBytes(file)
         )
     let serializedMessage = JsonSerializer.Serialize message
     printfn "%s" serializedMessage
