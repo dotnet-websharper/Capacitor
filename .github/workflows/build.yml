@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    if: "!contains(github.event.commits[0].author.email, 'ci@intellifactory.com')"
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
