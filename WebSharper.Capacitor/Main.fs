@@ -31,9 +31,9 @@ module Definition =
     module ActionSheet = 
         let ActionSheetButtonStyle =
             Pattern.EnumStrings "ActionSheetButtonStyle" [
-                "Default"
-                "Destructive"
-                "Cancel"
+                "DEFAULT"
+                "DESTRUCTIVE"
+                "CANCEL"
             ]
 
         let ActionSheetButton =
@@ -377,15 +377,15 @@ module Definition =
 
         let CameraSource = 
             Pattern.EnumStrings "CameraSource" [
-                "Prompt"
-                "Camera"
-                "Photos"
+                "PROMPT"
+                "CAMERA"
+                "PHOTOS"
             ]
 
         let CameraDirection = 
             Pattern.EnumStrings "CameraDirection" [
-                "Rear"
-                "Front"
+                "REAR"
+                "FRONT"
             ]
     
         let ImageOptions = 
@@ -719,19 +719,19 @@ module Definition =
     module Filesystem =
         let Directory = 
             Pattern.EnumStrings "Directory" [
-                "Documents"
-                "Data"
-                "Library"
-                "Cache"
-                "External"
-                "ExternalStorage"
+                "DOCUMENTS"
+                "DATA"
+                "LIBRARY"
+                "CACHE"
+                "EXTERNAL"
+                "EXTERNAL_STORAGE"
             ]
 
         let Encoding = 
             Pattern.EnumStrings "Encoding" [
-                "UTF8"
-                "ASCII"
-                "UTF16"
+                "utf8"
+                "ascii"
+                "utf16"
             ]
 
         let CopyOptions =
@@ -1403,16 +1403,16 @@ module Definition =
     module Haptics = 
         let ImpactStyle =
             Pattern.EnumStrings "ImpactStyle" [
-                "Heavy"
-                "Medium"
-                "Light"
+                "HEAVY"
+                "MEDIUM"
+                "LIGHT"
             ]
 
         let NotificationType =
             Pattern.EnumStrings "NotificationType" [
-                "Success"
-                "Warning"
-                "Error"
+                "SUCCESS"
+                "WARNING"
+                "ERROR"
             ]
 
         let ImpactOptions = 
@@ -1513,44 +1513,44 @@ module Definition =
     [<AutoOpen>]
     module InAppBrowser = 
         let ToolbarPosition =
-            Pattern.EnumInlines "ToolbarPosition" [
-                "TOP", "0"
-                "BOTTOM", "1"
+            Pattern.EnumStrings "ToolbarPosition" [
+                "TOP"
+                "BOTTOM"
             ]
 
         let iOSViewStyle =
-            Pattern.EnumInlines "iOSViewStyle" [
-                "PAGE_SHEET", "0"
-                "FORM_SHEET", "1"
-                "FULL_SCREEN", "2"
+            Pattern.EnumStrings "iOSViewStyle" [
+                "PAGE_SHEET"
+                "FORM_SHEET"
+                "FULL_SCREEN"
             ]
 
         let AndroidViewStyle =
-            Pattern.EnumInlines "AndroidViewStyle" [
-                "BOTTOM_SHEET", "0"
-                "FULL_SCREEN", "1"
+            Pattern.EnumStrings "AndroidViewStyle" [
+                "BOTTOM_SHEET"
+                "FULL_SCREEN"
             ]
 
         let iOSAnimation =
-            Pattern.EnumInlines "iOSAnimation" [
-                "FLIP_HORIZONTAL", "0"
-                "CROSS_DISSOLVE", "1"
-                "COVER_VERTICAL", "2"
+            Pattern.EnumStrings "iOSAnimation" [
+                "FLIP_HORIZONTAL"
+                "CROSS_DISSOLVE"
+                "COVER_VERTICAL"
             ]
 
         let AndroidAnimation =
-            Pattern.EnumInlines "AndroidAnimation" [
-                "FADE_IN", "0"
-                "FADE_OUT", "1"
-                "SLIDE_IN_LEFT", "2"
-                "SLIDE_OUT_RIGHT", "3"
+            Pattern.EnumStrings "AndroidAnimation" [
+                "FADE_IN"
+                "FADE_OUT"
+                "SLIDE_IN_LEFT"
+                "SLIDE_OUT_RIGHT"
             ]
 
         let DismissStyle =
-            Pattern.EnumInlines "DismissStyle" [
-                "CLOSE", "0"
-                "CANCEL", "1"
-                "DONE", "2"
+            Pattern.EnumStrings "DismissStyle" [
+                "CLOSE"
+                "CANCEL"
+                "DONE"
             ]
 
         let AndroidWebViewOptions = 
@@ -1677,17 +1677,17 @@ module Definition =
     module Keyboard =
         let KeyboardStyle = 
             Pattern.EnumStrings "KeyboardStyle" [
-                "Dark"
-                "Light"
-                "Default"
+                "DARK"
+                "LIGHT"
+                "DEFAULT"
             ]
 
         let KeyboardResize = 
             Pattern.EnumStrings "KeyboardResize" [
-                "Body"
-                "Ionic"
-                "Native"
-                "None"
+                "body"
+                "ionic"
+                "native"
+                "none"
             ]
 
         let KeyboardStyleOptions = 
