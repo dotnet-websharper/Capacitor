@@ -2766,6 +2766,15 @@ module Definition =
 
         let SetBiometryType = BiometryType + T<string> + !|BiometryType
 
+        let BiometryError = 
+            Pattern.Config "BiometryError" {
+                Required = []
+                Optional = [
+                    "message", T<string>
+                    "code", BiometryErrorType.Type
+                ]
+            }
+
         let BiometricAuthPlugin =
             Class "BiometricAuthPlugin"
             |+> Instance [
@@ -2890,7 +2899,7 @@ module Definition =
             ]
             Namespace "WebSharper.Capacitor.BiometricAuth" [
                 CheckBiometryResult; BiometryType; AuthenticateOptions
-                AndroidBiometryStrength; BiometryErrorType
+                AndroidBiometryStrength; BiometryErrorType; BiometryError
             ]
             Namespace "WebSharper.Capacitor.ActionSheet" [
                 ShowActionsOptions; ShowActionsResult; ActionSheetButton; ActionSheetButtonStyle
