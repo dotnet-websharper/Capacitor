@@ -53,6 +53,7 @@ module Client =
             ))
             return alert
         }
+        
         let showConfirm () = promise {
             let! value = Capacitor.Dialog.Confirm(Dialog.ConfirmOptions(
                 Title = "Confirm",
