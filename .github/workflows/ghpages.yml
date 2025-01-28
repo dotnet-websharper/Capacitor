@@ -33,7 +33,10 @@ jobs:
         run: dotnet paket restore
 
       - name: Build WebSharper Project
-        run: dotnet build WebSharper.Capacitor.Sample/WebSharper.Capacitor.Sample.fsproj --configuration Release
+        run: |
+            dotnet build 
+            npx vite build
+        working-directory: ./WebSharper.Capacitor.Sample        
 
       - name: Prepare Deployment
         run: |
