@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Capacitor.Sample</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="Content/Capacitor.Sample.css" />
+    <style>
+        /* Don't show the not-yet-loaded templates */
+        [ws-template], [ws-children-template] { display: none; }
+    </style>
+  <script type="module" crossorigin src="/assets/index-D2xGa149.js"></script>
+</head>
+<body>
+    <h1>List of Capacitor Tests</h1>
+    <div id="main" ws-children-template="Main">
+        <div>
+            <h3>Camera Test</h3>
+            <button ws-onclick="TakePhoto">Take Photo</button>
+            <div>Camera output: ${cameraOutput}</div>
+        </div>
+        <div>
+            <h3>Clipboard Test</h3>
+            <input ws-var="ClipboardValue" />
+            <button ws-onclick="WriteClipboard">Write Clipboard</button>
+            <div>${writeClipboardOutput}</div>
+        </div>
+        <div>
+            <h3>Cookies Test</h3>
+            <button ws-onclick="SetCookies">Set Cookies</button>
+        </div>
+        <div>
+            <h3>Dialog Test</h3>
+            <button ws-onclick="ShowAlert">Show Alert</button>
+            <button ws-onclick="ShowConfirm">Show Confirm</button>
+        </div>
+        <div>
+            <h3>Preferences Test</h3>
+            <input ws-var="PreferencesValue" />
+            <button ws-onclick="Save">Save</button>
+            <button ws-onclick="Get">Get</button>
+            <p>${PreferencesSavedValue}</p>
+            <p>${PreferencesOutput}</p>
+        </div>
+        <div>
+            <h3>Local Notification Test</h3>
+            <button ws-onclick="Notification">Notification</button>
+            <button ws-onclick="DeliveredNotification">Delivered Notification</button>
+        </div>
+        <div>
+            <h3>Auth Test</h3>
+            <button ws-onclick="LogIn">Log in</button>
+            <p>${LogInOutput}</p>
+        </div>
+    </div>
+</body>
+</html>
