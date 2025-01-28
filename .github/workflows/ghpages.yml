@@ -52,9 +52,15 @@ jobs:
 
       - name: Build WebSharper Project
         run: |
-            dotnet build 
-            npx vite build
+          dotnet build
+          npx vite build
         working-directory: ./WebSharper.Capacitor.Sample        
+
+      - name: Prevent Jekyll Processing
+        run: echo > WebSharper.Capacitor.Sample/wwwroot/dist/.nojekyll
+
+      - name: Verify Deployed Files
+        run: dir WebSharper.Capacitor.Sample/wwwroot/dist
 
       - name: Deploy 🚀
         uses: peaceiris/actions-gh-pages@v3
