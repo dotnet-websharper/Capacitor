@@ -15,6 +15,7 @@ tags
     Web JavaScript F# C#
 files
     ../WebSharper.Capacitor/bin/Release/netstandard2.0/WebSharper.Capacitor.dll ==> lib/netstandard2.0
+    ../WebSharper.Capacitor/bin/Release/netstandard2.0/WebSharper.Capacitor.websharper ==> lib/netstandard2.0
     ../WebSharper.Capacitor/bin/Release/netstandard2.0/WebSharper.Capacitor.xml ==> lib/netstandard2.0
     ../WebSharper.Capacitor/WebSharper.Capacitor.fsproj ==> src/
 dependencies
