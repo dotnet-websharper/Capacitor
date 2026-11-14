@@ -11,7 +11,7 @@ jobs:
     if: "!contains(github.event.commits[0].author.email, 'ci@intellifactory.com')"
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       # Set up Node.js with the latest LTS version
       - name: Set up Node.js
@@ -19,10 +19,11 @@ jobs:
         with:
           node-version: 'lts/*'
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v2.1.1
+      - name: Setup .NET 11
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-quality: preview
+          dotnet-version: '11.0.x'
 
       # Install project dependencies, including Capacitor
       - name: Install dependencies
@@ -36,15 +37,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Paket as global tool
-        run: dotnet tool install paket --global
+      - name: Install Paket as a .NET Tool
+        run: dotnet tool restore
 
       - name: Add credentials for Paket
-        run:
-          paket config
-            add-credentials https://nuget.pkg.github.com/dotnet-websharper/index.json
-            --username intellifactory-gh 
-            --password ${{ secrets.PAT_PACKAGE }}
+        run: dotnet paket config add-credentials https://nuget.pkg.github.com/dotnet-websharper/index.json --username intellifactory-gh --password ${{ secrets.PAT_PACKAGE }}
 
       - name: Add GitHub registry NuGet source
         run: 
@@ -65,16 +62,12 @@ jobs:
 
       - name: Build app
         run: |
-          dotnet tool restore
-          dotnet build
-          npx vite build
-        working-directory: ./WebSharper.Capacitor.Sample
+          dotnet paket restore
+          dotnet build WebSharper.Capacitor.Sample/WebSharper.Capacitor.Sample.fsproj -c Release
 
       # Add the Android platform to the Capacitor project
-      - name: Add Android platform
-        run: |
-          npx cap add android
-          npx cap sync
+      - name: Sync Android platform
+        run: npx cap sync android
         working-directory: ./WebSharper.Capacitor.Sample
 
       - name: Set version

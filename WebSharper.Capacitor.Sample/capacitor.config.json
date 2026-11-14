@@ -1,5 +1,5 @@
 {
   "appId": "com.testapp.app",
   "appName": "TestApp",
-  "webDir": "wwwroot/dist"
+  "webDir": "dist"
 }

@@ -27,6 +27,18 @@ module Definition =
                 "popover"
             ]
 
+        /// The runtime API exposed by `@capacitor/core`.
+        let CapacitorCore =
+            Class "CapacitorCore"
+            |+> Static [
+                "getPlatform" => T<unit> ^-> T<string>
+                |> WithComment "Returns the platform the app is running on: 'web', 'ios' or 'android'."
+                "isNativePlatform" => T<unit> ^-> T<bool>
+                "isPluginAvailable" => T<string>?name ^-> T<bool>
+                "convertFileSrc" => T<string>?filePath * !?T<string>?protocol ^-> T<string>
+            ]
+            |> Import "Capacitor" "@capacitor/core"
+
     [<AutoOpen>]
     module ActionSheet = 
         let ActionSheetButtonStyle =
@@ -38,7 +50,7 @@ module Definition =
 
         let ActionSheetButton =
             Pattern.Config "ActionSheetButton" {
-                Required = ["title", T<string>]
+                Required = [("title", T<string>)]
                 Optional = [
                     "style", ActionSheetButtonStyle.Type
                     "icon", T<string>
@@ -47,16 +59,22 @@ module Definition =
 
         let ShowActionsOptions =
             Pattern.Config "ShowActionsOptions" {
-                Required = ["options", !| ActionSheetButton]
+                Required = [("options", !| ActionSheetButton)]
                 Optional = [
                     "title", T<string>
                     "message", T<string>
+                    // Since 8.1.0: cancel the sheet when tapping outside of it.
+                    "cancelable", T<bool>
                 ]
             }
 
         let ShowActionsResult = 
             Pattern.Config "ShowActionsResult" {
-                Required = ["index", T<int>]
+                Required = [
+                    "index", T<int>
+                    // Since 8.1.0.
+                    "canceled", T<bool>
+                ]
                 Optional = []
             }
 
@@ -70,25 +88,25 @@ module Definition =
     module AppLauncher =
         let CanOpenURLResult = 
             Pattern.Config "CanOpenURLResult" {
-                Required = ["value", T<bool>]
+                Required = [("value", T<bool>)]
                 Optional = []
             }
         
         let CanOpenURLOptions = 
             Pattern.Config "CanOpenURLOptions" {
-                Required = ["url", T<string>]
+                Required = [("url", T<string>)]
                 Optional = []
             }
 
         let OpenURLResult =
             Pattern.Config "OpenURLResult" {
-                Required = ["completed", T<bool>]
+                Required = [("completed", T<bool>)]
                 Optional = []
             }
 
         let OpenURLOptions = 
             Pattern.Config "OpenURLOptions" {
-                Required = ["url", T<string>]
+                Required = [("url", T<string>)]
                 Optional = []
             }
 
@@ -114,23 +132,29 @@ module Definition =
 
         let AppState =
             Pattern.Config "AppState" {
-                Required = ["isActive", T<bool>]
+                Required = [("isActive", T<bool>)]
                 Optional = []
             }
 
         let AppLaunchUrl =
             Pattern.Config "AppLaunchUrl" {
-                Required = ["url", T<string>]
+                Required = [("url", T<string>)]
                 Optional = []
             }
 
         let URLOpenListenerEvent = 
             Pattern.Config "URLOpenListenerEvent" {
-                Required = ["url", T<string>]
+                Required = [("url", T<string>)]
                 Optional = [
                     "iosSourceApplication", T<obj>
                     "iosOpenInPlace", T<bool>
                 ]
+            }
+
+        let RestoredListenerError = 
+            Pattern.Config "RestoredListenerError" {
+                Required = [("message", T<string>)]
+                Optional = []
             }
 
         let RestoredListenerEvent = 
@@ -142,14 +166,42 @@ module Definition =
                 ]
                 Optional = [
                     "data", T<obj>
-                    "error", T<string>
+                    "error", RestoredListenerError.Type
                 ]
             }
 
         let BackButtonListenerEvent = 
             Pattern.Config "BackButtonListenerEvent" {
-                Required = ["canGoBack", T<bool>]
+                Required = [("canGoBack", T<bool>)]
                 Optional = []
+            }
+
+        let ToggleBackButtonHandlerOptions = 
+            Pattern.Config "ToggleBackButtonHandlerOptions" {
+                Required = [("enabled", T<bool>)]
+                Optional = []
+            }
+
+        let AppLanguageCode = 
+            Pattern.Config "AppLanguageCode" {
+                Required = [("value", T<string>)]
+                Optional = []
+            }
+
+        let AppOptions = 
+            Pattern.Config "AppOptions" {
+                Required = []
+                Optional = [
+                    ("disableBackButtonHandler", T<bool>)
+                ]
+            }
+
+        let PluginsConfig = 
+            Pattern.Config "PluginsConfig" {
+                Required = []
+                Optional = [
+                    ("App", AppOptions.Type)
+                ]
             }
 
         let StateChangeListener = AppState ^-> T<unit>
@@ -166,8 +218,12 @@ module Definition =
                 "exitApp" => T<unit> ^-> T<Promise<unit>>
                 "getInfo" => T<unit> ^-> T<Promise<_>>[AppInfo]
                 "getState" => T<unit> ^-> T<Promise<_>>[AppState]
-                "getLaunchUrl" => T<unit> ^-> T<Promise<obj>>
+                "getLaunchUrl" => T<unit> ^-> T<Promise<_>>[AppLaunchUrl]
                 "minimizeApp" => T<unit> ^-> T<Promise<unit>>
+                "getAppLanguage" => T<unit> ^-> T<Promise<_>>[AppLanguageCode]
+                |> WithComment "Gets the app specific language locale code. Since 8.1.0."
+                "toggleBackButtonHandler" => ToggleBackButtonHandlerOptions?options ^-> T<Promise<unit>>
+                |> WithComment "Enables or disables the plugin's back button handling during runtime (Android only). Since 7.1.0."
                 "addListener" => T<string>?eventName * StateChangeListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "Listens for 'appStateChange' event."
                 "addListener" => T<string>?eventName * ListenFunctionType T<unit>?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
@@ -188,41 +244,42 @@ module Definition =
 
         let PermissionStatus = 
             Pattern.Config "PermissionStatus" {
-                Required = []
-                Optional = [
+                Required = [
                     "geolocation", PermissionState.Type
                     "notifications", PermissionState.Type
                 ]
+                Optional = []
             }
 
         let DispatchEventOptions = 
             Pattern.Config "DispatchEventOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "label", T<string>
                     "event", T<string>
-                    "details", T<obj>  
+                    "details", T<obj>
                 ]
+                Optional = []
             }
 
         let RequestPermissionOptions = 
             Pattern.Config "RequestPermissionOptions" {
                 Required = [
-                    "apis", !| API 
+                    ("apis", !| API) 
                 ]
                 Optional = []
             }
 
         let BackgroundRunnerOptions = 
             Pattern.Config "BackgroundRunnerOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "label", T<string>
                     "src", T<string>
                     "event", T<string>
                     "repeat", T<bool>
                     "interval", T<int>
-                    "autoStart", T<bool>
+                ]
+                Optional = [
+                    ("autoStart", T<bool>)
                 ]
             }
 
@@ -230,16 +287,28 @@ module Definition =
             Pattern.Config "PluginsConfig" {
                 Required = []
                 Optional = [
-                    "BackgroundRunner", BackgroundRunnerOptions.Type
+                    ("BackgroundRunner", BackgroundRunnerOptions.Type)
                 ]
+            }
+
+        let NotificationActionEvent = 
+            Pattern.Config "NotificationActionEvent" {
+                Required = [
+                    "actionTypeId", T<string>
+                    "notificationId", T<int>
+                ]
+                Optional = []
             }
 
         let BackgroundRunnerPlugin =
             Class "BackgroundRunnerPlugin"
             |+> Instance [
-                "checkPermissions" => T<unit> ^-> T<Promise<obj>>
-                "requestPermissions" => RequestPermissionOptions?options ^-> T<Promise<obj>>
+                "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
+                "requestPermissions" => RequestPermissionOptions?options ^-> T<Promise<_>>[PermissionStatus]
                 "dispatchEvent" => DispatchEventOptions?options ^-> T<Promise<obj>>
+                "addListener" => T<string>?eventName * ListenFunctionType NotificationActionEvent?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'backgroundRunnerNotificationReceived' event."
+                "removeNotificationListeners" => T<unit> ^-> T<Promise<unit>>
             ]
 
     [<AutoOpen>]
@@ -259,14 +328,6 @@ module Definition =
 
         let CapacitorBarcodeScannerAndroidScanningLibrary = 
             Pattern.EnumStrings "CapacitorBarcodeScannerAndroidScanningLibrary" ["zxing"; "mlkit"]
-
-        let CapacitorBarcodeScannerScanResult = 
-            Pattern.Config "CapacitorBarcodeScannerScanResult" {
-                Required = []
-                Optional = [
-                    "ScanResult", T<string>
-                ]
-            }
 
         let CapacitorBarcodeScannerTypeHint =
             Pattern.EnumInlines "CapacitorBarcodeScannerTypeHint" [
@@ -290,10 +351,19 @@ module Definition =
                     "ALL", "17"
                 ]
 
+        let CapacitorBarcodeScannerScanResult = 
+            Pattern.Config "CapacitorBarcodeScannerScanResult" {
+                Required = [
+                    "ScanResult", T<string>
+                    "format", CapacitorBarcodeScannerTypeHint.Type
+                ]
+                Optional = []
+            }
+
         let AndroidScanningLibrary = 
             Pattern.Config "AndroidScanningLibrary" {
-                Required = []
-                Optional = ["scanningLibrary", CapacitorBarcodeScannerAndroidScanningLibrary.Type]
+                Required = [("scanningLibrary", CapacitorBarcodeScannerAndroidScanningLibrary.Type)]
+                Optional = []
             }
 
         let WebOptions = 
@@ -307,14 +377,18 @@ module Definition =
 
         let CapacitorBarcodeScannerOptions = 
             Pattern.Config "CapacitorBarcodeScannerOptions" {
-                Required = []
+                Required = [
+                    ("hint", CapacitorBarcodeScannerTypeHint.Type)
+                ]
                 Optional = [
-                    "hint", CapacitorBarcodeScannerTypeHint.Type
                     "scanInstructions", T<string>
                     "scanButton", T<bool>
                     "scanText", T<string>
                     "cameraDirection", CapacitorBarcodeScannerCameraDirection.Type
                     "scanOrientation", CapacitorBarcodeScannerScanOrientation.Type
+                    "cancelButtonAccessibilityLabel", T<string>
+                    "torchButtonOnAccessibilityLabel", T<string>
+                    "torchButtonOffAccessibilityLabel", T<string>
                     "android", AndroidScanningLibrary.Type
                     "web", WebOptions.Type
                 ]
@@ -330,9 +404,8 @@ module Definition =
     module Browser = 
         let OpenOptions = 
             Pattern.Config "OpenOptions" {
-                Required = []
+                Required = [("url", T<string>)]
                 Optional = [
-                    "url", T<string>
                     "windowName", T<string>
                     "toolbarColor", T<string>
                     "presentationStyle", PresentationStyle.Type
@@ -387,11 +460,52 @@ module Definition =
                 "REAR"
                 "FRONT"
             ]
+
+        let MediaType =
+            Pattern.EnumInlines "MediaType" [
+                "Photo", "0"
+                "Video", "1"
+            ]
+
+        let MediaTypeSelection =
+            Pattern.EnumInlines "MediaTypeSelection" [
+                "Photo", "0"
+                "Video", "1"
+                "All", "2"
+            ]
+
+        let EncodingType =
+            Pattern.EnumInlines "EncodingType" [
+                "JPEG", "0"
+                "PNG", "1"
+            ]
+
+        let Editable =
+            Pattern.EnumInlines "Editable" [
+                "InApp", "\"in-app\""
+                "External", "\"external\""
+                "No", "\"no\""
+            ]
+
+        let CameraErrorCode =
+            Pattern.EnumStrings "CameraErrorCode" [
+                "CameraPermissionDenied"
+                "GalleryPermissionDenied"
+                "NoCameraAvailable"
+                "TakePhotoCancelled"
+                "TakePhotoFailed"
+                "TakePhotoInvalidArguments"
+                "InvalidImageData"
+                "EditPhotoFailed"
+                "EditPhotoCancelled"
+                "EditPhotoEmptyUri"
+                "ImageNotFound"
+            ]
     
         let ImageOptions = 
             Pattern.Config "ImageOptions" {
                 Required = [
-                    "resultType", CameraResultType.Type
+                    ("resultType", CameraResultType.Type)
                 ]
                 Optional = [
                     "quality", T<int>
@@ -441,7 +555,7 @@ module Definition =
         let GalleryPhotos = 
             Pattern.Config "GalleryPhotos" {
                 Required = [
-                    "photos", !|GalleryPhoto
+                    ("photos", !|GalleryPhoto)
                 ]
                 Optional = []
             }
@@ -461,28 +575,141 @@ module Definition =
 
         let PermissionStatus = 
             Pattern.Config "PermissionStatus"{
-                Required = []
-                Optional = [
+                Required = [
                     "camera", CameraPermissionState.Type
                     "photos", CameraPermissionState.Type
                 ]
+                Optional = []
             }
 
         let CameraPluginPermissions = 
             Pattern.Config "CameraPluginPermissions" {
-                Required = []
-                Optional = ["permissions", !| CameraPermissionType]
+                Required = [("permissions", !| CameraPermissionType)]
+                Optional = []
             }             
+
+        let TakePhotoOptions =
+            Pattern.Config "TakePhotoOptions" {
+                Required = []
+                Optional = [
+                    "quality", T<int>
+                    "targetWidth", T<int>
+                    "targetHeight", T<int>
+                    "correctOrientation", T<bool>
+                    "encodingType", EncodingType.Type
+                    "saveToGallery", T<bool>
+                    "cameraDirection", CameraDirection.Type
+                    "editable", Editable.Type
+                    "presentationStyle", PresentationStyle.Type
+                    "webUseInput", T<bool>
+                    "includeMetadata", T<bool>
+                ]
+            }
+
+        let RecordVideoOptions =
+            Pattern.Config "RecordVideoOptions" {
+                Required = []
+                Optional = [
+                    "saveToGallery", T<bool>
+                    "includeMetadata", T<bool>
+                    "isPersistent", T<bool>
+                ]
+            }
+
+        let PlayVideoOptions =
+            Pattern.Config "PlayVideoOptions" {
+                Required = [("uri", T<string>)]
+                Optional = []
+            }
+
+        let ChooseFromGalleryOptions =
+            Pattern.Config "ChooseFromGalleryOptions" {
+                Required = []
+                Optional = [
+                    "mediaType", MediaTypeSelection.Type
+                    "allowMultipleSelection", T<bool>
+                    "limit", T<int>
+                    "includeMetadata", T<bool>
+                    "editable", Editable.Type
+                    "presentationStyle", PresentationStyle.Type
+                    "quality", T<int>
+                    "targetWidth", T<int>
+                    "targetHeight", T<int>
+                    "correctOrientation", T<bool>
+                    "webUseInput", T<bool>
+                ]
+            }
+
+        let EditPhotoOptions =
+            Pattern.Config "EditPhotoOptions" {
+                Required = [("inputImage", T<string>)]
+                Optional = []
+            }
+
+        let EditPhotoResult =
+            Pattern.Config "EditPhotoResult" {
+                Required = [("outputImage", T<string>)]
+                Optional = []
+            }
+
+        let EditURIPhotoOptions =
+            Pattern.Config "EditURIPhotoOptions" {
+                Required = [("uri", T<string>)]
+                Optional = [
+                    "saveToGallery", T<bool>
+                    "includeMetadata", T<bool>
+                ]
+            }
+
+        let MediaMetadata =
+            Pattern.Config "MediaMetadata" {
+                Required = [("format", T<string>)]
+                Optional = [
+                    "size", T<float>
+                    "duration", T<float>
+                    "resolution", T<string>
+                    "creationDate", T<string>
+                    "exif", T<string>
+                ]
+            }
+
+        let MediaResult =
+            Pattern.Config "MediaResult" {
+                Required = [
+                    "type", MediaType.Type
+                    "saved", T<bool>
+                ]
+                Optional = [
+                    "uri", T<string>
+                    "thumbnail", T<string>
+                    "webPath", T<string>
+                    "metadata", MediaMetadata.Type
+                ]
+            }
+
+        let MediaResults =
+            Pattern.Config "MediaResults" {
+                Required = [("results", !| MediaResult)]
+                Optional = []
+            }
 
         let CameraPlugin = 
             Class "CameraPlugin"
             |+> Instance [
-                "getPhoto" => ImageOptions?options ^-> T<Promise<_>>[Photo]
-                "pickImages" => GalleryImageOptions?options ^-> T<Promise<_>>[GalleryPhotos]
+                "takePhoto" => TakePhotoOptions?options ^-> T<Promise<_>>[MediaResult]
+                "recordVideo" => RecordVideoOptions?options ^-> T<Promise<_>>[MediaResult]
+                "playVideo" => PlayVideoOptions?options ^-> T<Promise<unit>>
+                "chooseFromGallery" => ChooseFromGalleryOptions?options ^-> T<Promise<_>>[MediaResults]
+                "editPhoto" => EditPhotoOptions?options ^-> T<Promise<_>>[EditPhotoResult]
+                "editURIPhoto" => EditURIPhotoOptions?options ^-> T<Promise<_>>[MediaResult]
                 "pickLimitedLibraryPhotos" => T<unit> ^-> T<Promise<_>>[GalleryPhotos]
                 "getLimitedLibraryPhotos" => T<unit> ^-> T<Promise<_>>[GalleryPhotos]
                 "checkPermissions" => T<unit> ^-> T<Promise<_>>[PermissionStatus]
                 "requestPermissions" => !?CameraPluginPermissions?permissions ^-> T<Promise<_>>[PermissionStatus]
+                "getPhoto" => ImageOptions?options ^-> T<Promise<_>>[Photo]
+                |> ObsoleteWithMessage "Use TakePhoto instead."
+                "pickImages" => GalleryImageOptions?options ^-> T<Promise<_>>[GalleryPhotos]
+                |> ObsoleteWithMessage "Use ChooseFromGallery instead."
             ]
 
     [<AutoOpen>]
@@ -517,28 +744,27 @@ module Definition =
     [<AutoOpen>]
     module Cookies = 
         let HttpCookieMap =
-            Pattern.Config "HttpCookieMap" {
-                Required = []
-                Optional = [
-                    "key", T<obj>
-                ]
-            }
+            Class "HttpCookieMap"
+            |+> Instance [
+                "" =@ T<string> |> Indexed T<string>
+            ]
 
         let GetCookieOptions = 
             Pattern.Config "GetCookieOptions" {
                 Required = []
                 Optional = [
-                    "url", T<string>
+                    ("url", T<string>)
                 ]
             }
 
         let SetCookieOptions = 
             Pattern.Config "SetCookieOptions" {
-                Required = []
-                Optional = [
-                    "url", T<string>
+                Required = [
                     "key", T<string>
                     "value", T<string>
+                ]
+                Optional = [
+                    "url", T<string>
                     "path", T<string>
                     "expires", T<string>
                 ]
@@ -546,10 +772,11 @@ module Definition =
 
         let DeleteCookieOptions = 
             Pattern.Config "DeleteCookieOptions" {
-                Required = []
+                Required = [
+                    ("key", T<string>)
+                ]
                 Optional = [
-                    "url", T<string>
-                    "key", T<string>
+                    ("url", T<string>)
                 ]
             }
         
@@ -557,7 +784,7 @@ module Definition =
             Pattern.Config "ClearCookieOptions" {
                 Required = []
                 Optional = [
-                    "url", T<string>
+                    ("url", T<string>)
                 ]
             }
 
@@ -584,10 +811,8 @@ module Definition =
 
         let DeviceId =
             Pattern.Config "DeviceId" {
-                Required = []
-                Optional = [
-                    "identifier", T<string>
-                ]
+                Required = [("identifier", T<string>)]
+                Optional = []
             }
 
         let DevicePlatform = 
@@ -599,23 +824,20 @@ module Definition =
 
         let DeviceInfo =
             Pattern.Config "DeviceInfo" {
-                Required = []
-                Optional = [
-                    "name", T<string>
+                Required = [
                     "model", T<string>
                     "platform", DevicePlatform.Type
                     "operatingSystem", OperatingSystem.Type
                     "osVersion", T<string>
-                    "iOSVersion", T<int>
-                    "androidSDKVersion", T<int>
                     "manufacturer", T<string>
                     "isVirtual", T<bool>
-                    "memUsed", T<int>
-                    "diskFree", T<int>
-                    "diskTotal", T<int>
-                    "realDiskFree", T<int>
-                    "realDiskTotal", T<int>
                     "webViewVersion", T<string>
+                ]
+                Optional = [
+                    "name", T<string>
+                    "iOSVersion", T<int>
+                    "androidSDKVersion", T<int>
+                    "memUsed", T<int>
                 ]
             }
 
@@ -632,7 +854,7 @@ module Definition =
             Pattern.Config "GetLanguageCodeResult" {
                 Required = []
                 Optional = [
-                    "value", T<string>
+                    ("value", T<string>)
                 ]
             }
 
@@ -640,7 +862,7 @@ module Definition =
             Pattern.Config "LanguageTag" {
                 Required = []
                 Optional = [
-                    "value", T<string>
+                    ("value", T<string>)
                 ]
             }
 
@@ -658,29 +880,27 @@ module Definition =
     module Dialog = 
         let AlertOptions =
             Pattern.Config "AlertOptions" {
-                Required = []
+                Required = [("message", T<string>)]
                 Optional = [
                     "title", T<string>
-                    "message", T<string>
                     "buttonTitle", T<string> 
                 ]
             }
 
         let PromptResult =
             Pattern.Config "PromptResult" {
-                Required = []
-                Optional = [
+                Required = [
                     "value", T<string>
                     "cancelled", T<bool>
                 ]
+                Optional = []
             }
 
         let PromptOptions =
             Pattern.Config "PromptOptions" {
-                Required = []
+                Required = [("message", T<string>)]
                 Optional = [
                     "title", T<string>
-                    "message", T<string>
                     "okButtonTitle", T<string>
                     "cancelButtonTitle", T<string>
                     "inputPlaceholder", T<string>
@@ -690,18 +910,17 @@ module Definition =
 
         let ConfirmResult =
             Pattern.Config "ConfirmResult" {
-                Required = []
-                Optional = [
-                    "value", T<bool>
+                Required = [
+                    ("value", T<bool>)
                 ]
+                Optional = []
             }
 
         let ConfirmOptions =
             Pattern.Config "ConfirmOptions" {
-                Required = []
+                Required = [("message", T<string>)]
                 Optional = [
                     "title", T<string>
-                    "message", T<string>
                     "okButtonTitle", T<string>
                     "cancelButtonTitle", T<string>
                 ]
@@ -725,6 +944,10 @@ module Definition =
                 "CACHE"
                 "EXTERNAL"
                 "EXTERNAL_STORAGE"
+                // Since 7.1.0.
+                "EXTERNAL_CACHE"
+                "LIBRARY_NO_CLOUD"
+                "TEMPORARY"
             ]
 
         let Encoding = 
@@ -736,10 +959,11 @@ module Definition =
 
         let CopyOptions =
             Pattern.Config "CopyOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "from", T<string>
                     "to", T<string>
+                ]
+                Optional = [
                     "directory", Directory.Type
                     "toDirectory", Directory.Type
                 ]
@@ -749,48 +973,68 @@ module Definition =
 
         let ProgressStatus = 
             Pattern.Config "ProgressStatus" {
-                Required = []
-                Optional = [
+                Required = [
                     "url", T<string>
                     "bytes", T<int>
                     "contentLength", T<int>
                 ]
+                Optional = []
             }
 
         let ProgressListener = ProgressStatus ^-> T<unit>
 
         let ReadFileResult =
             Pattern.Config "ReadFileResult" {
-                Required = []
-                Optional = [
-                    "data", T<string> + T<Blob>
+                Required = [
+                    ("data", T<string> + T<Blob>)
                 ]
+                Optional = []
             }
 
         let ReadFileOptions = 
             Pattern.Config "ReadFileOptions" {
-                Required = []
+                Required = [
+                    ("path", T<string>)
+                ]
                 Optional = [
-                    "path", T<string>
                     "directory", Directory.Type
                     "encoding", Encoding.Type
+                    "offset", T<int>
+                    "length", T<int>
                 ]
             }
 
+        let ReadFileInChunksOptions = 
+            Pattern.Config "ReadFileInChunksOptions" {
+                Required = [
+                    "path", T<string>
+                    "chunkSize", T<int>
+                ]
+                Optional = [
+                    "directory", Directory.Type
+                    "encoding", Encoding.Type
+                    "offset", T<int>
+                    "length", T<int>
+                ]
+            }
+
+        let ReadFileInChunksCallback = (ReadFileResult + T<unit>) * !?T<obj> ^-> T<unit>
+
         let WriteFileResult = 
             Pattern.Config "WriteFileResult" {
-                Required = []
-                Optional = [
-                    "uri", T<string> 
+                Required = [
+                    ("uri", T<string>) 
                 ]
+                Optional = []
             }
 
         let WriteFileOptions = 
             Pattern.Config "WriteFileOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "path", T<string> 
                     "data", T<string> + T<Blob>
+                ]
+                Optional = [
                     "directory", Directory.Type
                     "encoding", Encoding.Type
                     "recursive", T<bool> 
@@ -799,10 +1043,11 @@ module Definition =
 
         let AppendFileOptions =     
             Pattern.Config "AppendFileOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "path", T<string> 
                     "data", T<string>
+                ]
+                Optional = [
                     "directory", Directory.Type
                     "encoding", Encoding.Type
                 ]
@@ -810,18 +1055,20 @@ module Definition =
 
         let DeleteFileOptions =     
             Pattern.Config "DeleteFileOptions" {
-                Required = []
+                Required = [
+                    ("path", T<string>) 
+                ]
                 Optional = [
-                    "path", T<string> 
-                    "directory", Directory.Type
+                    ("directory", Directory.Type)
                 ]
             }
 
         let MkdirOptions =     
             Pattern.Config "MkdirOptions" {
-                Required = []
+                Required = [
+                    ("path", T<string>) 
+                ]
                 Optional = [
-                    "path", T<string> 
                     "directory", Directory.Type
                     "recursive", T<bool> 
                 ]
@@ -829,9 +1076,10 @@ module Definition =
 
         let RmdirOptions =     
             Pattern.Config "RmdirOptions" {
-                Required = []
+                Required = [
+                    ("path", T<string>) 
+                ]
                 Optional = [
-                    "path", T<string> 
                     "directory", Directory.Type
                     "recursive", T<bool> 
                 ]
@@ -845,78 +1093,83 @@ module Definition =
 
         let FileInfo = 
             Pattern.Config "FileInfo" {
-                Required = []
-                Optional = [
+                Required = [
                     "name", T<string> 
                     "type", FileType.Type
                     "size", T<int> 
-                    "ctime", T<int> 
                     "mtime", T<int> 
                     "uri", T<string> 
+                ]
+                Optional = [
+                    ("ctime", T<int>) 
                 ]
             }
 
         let ReaddirOptions = 
             Pattern.Config "ReaddirOptions" {
-                Required = []
+                Required = [
+                    ("path", T<string>) 
+                ]
                 Optional = [
-                    "path", T<string> 
-                    "directory", Directory.Type
+                    ("directory", Directory.Type)
                 ]
             }
 
         let GetUriResult = 
             Pattern.Config "GetUriResult" {
-                Required = []
-                Optional = [
-                    "uri", T<string> 
+                Required = [
+                    ("uri", T<string>) 
                 ]
+                Optional = []
             }
 
         let GetUriOptions = 
             Pattern.Config "GetUriOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "path", T<string> 
                     "directory", Directory.Type 
                 ]
+                Optional = []
             }
 
         let StatResult = 
             Pattern.Config "StatResult" {
-                Required = []
-                Optional = [
+                Required = [
+                    "name", T<string> 
                     "type", FileType.Type
                     "size", T<int> 
-                    "ctime", T<int> 
                     "mtime", T<int> 
                     "uri", T<string> 
+                ]
+                Optional = [
+                    ("ctime", T<int>) 
                 ]
             }
 
         let StatOptions = 
             Pattern.Config "StatOptions" {
-                Required = []
+                Required = [
+                    ("path", T<string>) 
+                ]
                 Optional = [
-                    "path", T<string> 
-                    "directory", Directory.Type 
+                    ("directory", Directory.Type) 
                 ]
             }
 
         let CopyResult = 
             Pattern.Config "CopyResult" {
-                Required = []
-                Optional = [
-                    "uri", T<string> 
+                Required = [
+                    ("uri", T<string>) 
                 ]
+                Optional = []
             }
 
         let PermissionStatus = 
             Pattern.Config "PermissionStatus" {
-                Required = []
-                Optional = [
-                    "publicStorage", PermissionState.Type
+                Required = [
+                    ("publicStorage", PermissionState.Type)
                 ]
+                Optional = []
             }
 
         let DownloadFileResult = 
@@ -930,9 +1183,22 @@ module Definition =
 
         let DownloadFileOptions = 
             Pattern.Config "DownloadFileOptions" {
-                Required = []
-                Optional = [
+                Required = [
+                    "url", T<string>
                     "path", T<string> 
+                ]
+                Optional = [
+                    "method", T<string>
+                    "params", T<obj>
+                    "data", T<obj>
+                    "headers", T<obj>
+                    "readTimeout", T<int>
+                    "connectTimeout", T<int>
+                    "disableRedirects", T<bool>
+                    "webFetchExtra", T<Request>
+                    "responseType", T<string>
+                    "shouldEncodeUrlParams", T<bool>
+                    "dataType", T<string>
                     "directory", Directory.Type
                     "progress", T<bool> 
                     "recursive", T<bool> 
@@ -941,16 +1207,17 @@ module Definition =
 
         let ReaddirResult = 
             Pattern.Config "ReaddirResult" {
-                Required = []
-                Optional = [
-                    "files", !| FileInfo
+                Required = [
+                    ("files", !| FileInfo)
                 ]
+                Optional = []
             }
 
         let FilesystemPlugin = 
             Class "FilesystemPlugin"
             |+> Instance [
                 "readFile" => ReadFileOptions?options ^-> T<Promise<_>>[ReadFileResult]
+                "readFileInChunks" => ReadFileInChunksOptions?options * ReadFileInChunksCallback?callback ^-> T<Promise<_>>[T<string>]
                 "writeFile" => WriteFileOptions?options ^-> T<Promise<_>>[WriteFileResult]
                 "appendFile" => AppendFileOptions?options ^-> T<Promise<unit>>
                 "deleteFile" => DeleteFileOptions?options ^-> T<Promise<unit>>
@@ -984,6 +1251,11 @@ module Definition =
                     "altitude", T<float>
                     "speed", T<float>
                     "heading", T<float>
+                    // Since 8.2.0, only available when using watchPosition.
+                    "magneticHeading", T<float>
+                    "trueHeading", T<float>
+                    "headingAccuracy", T<float>
+                    "course", T<float>
                 ]
             }
 
@@ -1011,12 +1283,17 @@ module Definition =
                     "enableHighAccuracy", T<bool>
                     "timeout", T<int>
                     "maximumAge", T<int>
+                    // Since 6.1.0 (Android only).
+                    "minimumUpdateInterval", T<int>
+                    // Since 8.0.0 (Android only).
+                    "interval", T<int>
+                    "enableLocationFallback", T<bool>
                 ]
             }
 
         let ClearWatchOptions = 
             Pattern.Config "ClearWatchOptions" {
-                Required = ["id", CallbackID]
+                Required = [("id", CallbackID)]
                 Optional = []
             }
 
@@ -1031,7 +1308,7 @@ module Definition =
 
         let GeolocationPluginPermissions = 
             Pattern.Config "GeolocationPluginPermissions" {
-                Required = ["permissions", !| GeolocationPermissionType]
+                Required = [("permissions", !| GeolocationPermissionType)]
                 Optional = []
             }
 
@@ -1059,7 +1336,7 @@ module Definition =
         let MapListenerCallback = Generic - fun t ->
             Pattern.Config "MapListenerCallback" {
                 Required = [
-                    "data", t ^-> T<unit>
+                    ("data", t ^-> T<unit>)
                 ]
                 Optional = []
             }
@@ -1077,7 +1354,7 @@ module Definition =
             Pattern.Config "MapReadyCallbackData" {
                 Required = []
                 Optional = [
-                    "mapId", T<string>
+                    ("mapId", T<string>)
                 ]
             }
 
@@ -1101,10 +1378,11 @@ module Definition =
 
         let Marker = 
             Pattern.Config "Marker" {
-                Required = []
+                Required = [
+                    ("coordinate", LatLng.Type)
+                ]
                 Optional = [
-                    "coordinate", LatLng.Type
-                    "opacity", T<int>
+                    "opacity", T<float>
                     "title", T<string>
                     "snippet", T<string>
                     "isFlat", T<bool>
@@ -1123,10 +1401,10 @@ module Definition =
                 Required = []
                 Optional = [
                     "strokeColor", T<string>
-                    "strokeOpacity", T<int>
+                    "strokeOpacity", T<float>
                     "strokeWeight", T<int>
                     "fillColor", T<string>
-                    "fillOpacity", T<int>
+                    "fillOpacity", T<float>
                     "geodesic", T<bool>
                     "clickable", T<bool>
                     "title", T<string>
@@ -1139,7 +1417,7 @@ module Definition =
                 Required = []
                 Optional = [
                     "fillColor", T<string>
-                    "fillOpacity", T<int>
+                    "fillOpacity", T<float>
                     "strokeColor", T<string>
                     "strokeWeight", T<int>
                     "geodesic", T<bool>
@@ -1151,10 +1429,23 @@ module Definition =
 
         let StyleSpan = 
             Pattern.Config "StyleSpan" {
-                Required = []
+                Required = [
+                    ("color", T<string>)
+                ]
                 Optional = [
-                    "color", T<string>
-                    "segments", T<int>
+                    ("segments", T<int>)
+                ]
+            }
+
+        let TileOverlay = 
+            Pattern.Config "TileOverlay" {
+                Required = [
+                    ("url", T<string>)
+                ]
+                Optional = [
+                    "opacity", T<float>
+                    "visible", T<bool>
+                    "zIndex", T<int>
                 ]
             }
             
@@ -1163,7 +1454,7 @@ module Definition =
                 Required = []
                 Optional = [
                     "strokeColor", T<string>
-                    "strokeOpacity", T<int>
+                    "strokeOpacity", T<float>
                     "strokeWeight", T<int>
                     "geodesic", T<bool>
                     "clickable", T<bool>
@@ -1178,8 +1469,8 @@ module Definition =
                 Optional = [
                     "coordinate", LatLng.Type
                     "zoom", T<int>
-                    "bearing", T<int>
-                    "angle", T<int>
+                    "bearing", T<float>
+                    "angle", T<float>
                     "animate", T<bool>
                     "animationDuration", T<int>
                 ]
@@ -1187,13 +1478,13 @@ module Definition =
 
         let MapPadding = 
             Pattern.Config "MapPadding" {
-                Required = []
-                Optional = [
+                Required = [
                     "top", T<int>
                     "left", T<int>
                     "right", T<int>
                     "bottom", T<int>
                 ]
+                Optional = []
             }
 
         let LatLngBoundsInterface = 
@@ -1223,9 +1514,9 @@ module Definition =
                 Optional = [
                     "mapId", T<string>
                     "bounds", LatLngBounds.Type
-                    "bearing", T<int>
-                    "latitude", T<int>
-                    "longitude", T<int>
+                    "bearing", T<float>
+                    "latitude", T<float>
+                    "longitude", T<float>
                     "tilt", T<int>
                     "zoom", T<int>
                 ]
@@ -1245,8 +1536,8 @@ module Definition =
                 Required = []
                 Optional = [
                     "markerId", T<string>
-                    "latitude", T<int>
-                    "longitude", T<int>
+                    "latitude", T<float>
+                    "longitude", T<float>
                     "title", T<string>
                     "snippet", T<string>
                 ]
@@ -1257,8 +1548,8 @@ module Definition =
                 Required = []
                 Optional = [
                     "mapId", T<string>
-                    "latitude", T<int>
-                    "longitude", T<int>
+                    "latitude", T<float>
+                    "longitude", T<float>
                     "size", T<int>
                     "items", !| MarkerCallbackData
                 ]
@@ -1278,16 +1569,20 @@ module Definition =
                 Required = []
                 Optional = [
                     "mapId", T<string>
-                    "latitude", T<int>
-                    "longitude", T<int>
+                    "latitude", T<float>
+                    "longitude", T<float>
                 ]
             }
 
         let MarkerClickCallbackData = 
             Pattern.Config "MarkerClickCallbackData" {
-                Required = []
+                Required = [("mapId", T<string>)]
                 Optional = [
-                    "mapId", T<string>
+                    "markerId", T<string>
+                    "latitude", T<float>
+                    "longitude", T<float>
+                    "title", T<string>
+                    "snippet", T<string>
                 ]
             }
 
@@ -1315,37 +1610,44 @@ module Definition =
             Pattern.Config "MyLocationButtonClickCallbackData" {
                 Required = []
                 Optional = [
-                    "mapId", T<string>
+                    ("mapId", T<string>)
                 ]
             }
 
         let GoogleMapConfig = 
             Pattern.Config "GoogleMapConfig" {
-                Required = []
+                Required = [
+                    "center", LatLng.Type
+                    "zoom", T<int>
+                ]
                 Optional = [
                     "width", T<int>
                     "height", T<int>
                     "x", T<int>
                     "y", T<int>
-                    "center", LatLng.Type
-                    "zoom", T<int>
                     "androidLiteMode", T<bool>
                     "devicePixelRatio", T<int>
                     "styles", !| T<obj> 
                     "mapId", T<string>
                     "androidMapId", T<string>
                     "iOSMapId", T<string>
+                    "maxZoom", T<int>
+                    "minZoom", T<int>
+                    "mapTypeId", T<string>
+                    "heading", T<int>
+                    "restriction", T<obj>
                 ]
             }
 
         let CreateMapArgs =
             Pattern.Config "CreateMapArgs" {
-                Required = []
-                Optional = [
+                Required = [
                     "id", T<string>
                     "apiKey", T<string>
                     "config", GoogleMapConfig.Type
                     "element", T<Dom.Element> 
+                ]
+                Optional = [
                     "forceCreate", T<bool>
                     "region", T<string>
                     "language", T<string>
@@ -1360,6 +1662,8 @@ module Definition =
                 "disableTouch" => T<unit> ^-> T<Promise<unit>>
                 "enableClustering" => !?T<int>?minClusterSize ^-> T<Promise<unit>> 
                 "disableClustering" => T<unit> ^-> T<Promise<unit>>
+                "addTileOverlay" => TileOverlay?tileOverlay ^-> T<Promise<string>>
+                "removeTileOverlay" => T<string>?id ^-> T<Promise<unit>>
                 "addMarker" => Marker?marker ^-> T<Promise<string>>
                 "addMarkers" => (!|Marker)?markers ^-> T<Promise<_>>[!|T<string>]
                 "removeMarker" => T<string>?id ^-> T<Promise<unit>>
@@ -1397,6 +1701,7 @@ module Definition =
                 "setOnMarkerDragEndListener" => !?MapListenerCallback[MarkerClickCallbackData]?callback ^-> T<Promise<unit>>
                 "setOnMyLocationButtonClickListener" => !?MapListenerCallback[MyLocationButtonClickCallbackData]?callback ^-> T<Promise<unit>>
                 "setOnMyLocationClickListener" => !?MapListenerCallback[MapClickCallbackData]?callback ^-> T<Promise<unit>>
+                "removeAllMapListeners" => T<unit> ^-> T<Promise<unit>>
             ]
 
     [<AutoOpen>]
@@ -1417,26 +1722,26 @@ module Definition =
 
         let ImpactOptions = 
             Pattern.Config "ImpactOptions" {
-                Required = []
-                Optional = [
-                    "style", ImpactStyle.Type
+                Required = [
+                    ("style", ImpactStyle.Type)
                 ]
+                Optional = []
             }
         
         let NotificationOptions = 
             Pattern.Config "NotificationOptions" {
-                Required = []
-                Optional = [
-                    "type", NotificationType.Type
+                Required = [
+                    ("type", NotificationType.Type)
                 ]
+                Optional = []
             }
 
         let VibrateOptions = 
             Pattern.Config "VibrateOptions" {
-                Required = []
-                Optional = [
-                    "duration", T<int>
+                Required = [
+                    ("duration", T<int>)
                 ]
+                Optional = []
             }
 
         let HapticsPlugin = 
@@ -1453,36 +1758,47 @@ module Definition =
     [<AutoOpen>]
     module Http = 
         let HttpParams = 
-            Pattern.Config "HttpParams" {
-                Required = []
-                Optional = [
-                    "params", T<obj> 
-                ]
-            }
+            Class "HttpParams"
+            |+> Instance [
+                "" =@ (T<string> + (!| T<string>)) |> Indexed T<string>
+            ]
 
         let HttpHeaders = 
-            Pattern.Config "HttpHeaders" {
-                Required = []
-                Optional = [
-                    "headers", T<obj> 
-                ]
-            }
+            Class "HttpHeaders"
+            |+> Instance [
+                "" =@ T<string> |> Indexed T<string>
+            ]
 
         let HttpResponse = 
             Pattern.Config "HttpResponse" {
-                Required = []
-                Optional = [
+                Required = [
                     "data", T<obj>
                     "status", T<int>
                     "headers", HttpHeaders.Type
                     "url", T<string>
                 ]
+                Optional = []
             }
+
+        let HttpResponseType =
+            Pattern.EnumInlines "HttpResponseType" [
+                "ArrayBuffer", "\"arraybuffer\""
+                "Blob", "\"blob\""
+                "Json", "\"json\""
+                "Text", "\"text\""
+                "Document", "\"document\""
+            ]
+
+        let HttpDataType =
+            Pattern.EnumInlines "HttpDataType" [
+                "File", "\"file\""
+                "FormData", "\"formData\""
+            ]
 
         let HttpOptions = 
             Pattern.Config "HttpOptions" {
                 Required = [
-                    "url", T<string>
+                    ("url", T<string>)
                 ]
                 Optional = [
                     "method", T<string>
@@ -1493,9 +1809,9 @@ module Definition =
                     "connectTimeout", T<int>
                     "disableRedirects", T<bool>
                     "webFetchExtra", T<Request>
-                    "responseType", T<XMLHttpRequestResponseType>
+                    "responseType", HttpResponseType.Type
                     "shouldEncodeUrlParams", T<bool>
-                    "dataType", T<string>
+                    "dataType", HttpDataType.Type
                 ]
             }
 
@@ -1513,132 +1829,143 @@ module Definition =
     [<AutoOpen>]
     module InAppBrowser = 
         let ToolbarPosition =
-            Pattern.EnumStrings "ToolbarPosition" [
-                "TOP"
-                "BOTTOM"
+            Pattern.EnumInlines "ToolbarPosition" [
+                "TOP", "0"
+                "BOTTOM", "1"
             ]
 
         let iOSViewStyle =
-            Pattern.EnumStrings "iOSViewStyle" [
-                "PAGE_SHEET"
-                "FORM_SHEET"
-                "FULL_SCREEN"
+            Pattern.EnumInlines "iOSViewStyle" [
+                "PAGE_SHEET", "0"
+                "FORM_SHEET", "1"
+                "FULL_SCREEN", "2"
             ]
 
         let AndroidViewStyle =
-            Pattern.EnumStrings "AndroidViewStyle" [
-                "BOTTOM_SHEET"
-                "FULL_SCREEN"
+            Pattern.EnumInlines "AndroidViewStyle" [
+                "BOTTOM_SHEET", "0"
+                "FULL_SCREEN", "1"
             ]
 
         let iOSAnimation =
-            Pattern.EnumStrings "iOSAnimation" [
-                "FLIP_HORIZONTAL"
-                "CROSS_DISSOLVE"
-                "COVER_VERTICAL"
+            Pattern.EnumInlines "iOSAnimation" [
+                "FLIP_HORIZONTAL", "0"
+                "CROSS_DISSOLVE", "1"
+                "COVER_VERTICAL", "2"
             ]
 
         let AndroidAnimation =
-            Pattern.EnumStrings "AndroidAnimation" [
-                "FADE_IN"
-                "FADE_OUT"
-                "SLIDE_IN_LEFT"
-                "SLIDE_OUT_RIGHT"
+            Pattern.EnumInlines "AndroidAnimation" [
+                "FADE_IN", "0"
+                "FADE_OUT", "1"
+                "SLIDE_IN_LEFT", "2"
+                "SLIDE_OUT_RIGHT", "3"
             ]
 
         let DismissStyle =
-            Pattern.EnumStrings "DismissStyle" [
-                "CLOSE"
-                "CANCEL"
-                "DONE"
+            Pattern.EnumInlines "DismissStyle" [
+                "CLOSE", "0"
+                "CANCEL", "1"
+                "DONE", "2"
             ]
 
         let AndroidWebViewOptions = 
             Pattern.Config "AndroidWebViewOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "allowZoom", T<bool>
                     "hardwareBack", T<bool>
                     "pauseMedia", T<bool>
+                ]
+                Optional = [
+                    "isIsolated", T<bool>
+                    "successUrlPatterns", !| T<string>
                 ]
             }
 
         let iOSWebViewOptions = 
             Pattern.Config "iOSWebViewOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "allowOverScroll", T<bool>
                     "enableViewportScale", T<bool>
                     "allowInLineMediaPlayback", T<bool>
                     "surpressIncrementalRendering", T<bool>
                     "viewStyle", iOSViewStyle.Type
                     "animationEffect", iOSAnimation.Type
+                    "allowsBackForwardNavigationGestures", T<bool>
                 ]
+                Optional = []
             }
 
         let AndroidBottomSheet = 
             Pattern.Config "AndroidBottomSheet" {
-                Required = []
-                Optional = [
+                Required = [
                     "height", T<int>
                     "isFixed", T<bool>
                 ]
+                Optional = []
             }
 
         let AndroidSystemBrowserOptions = 
             Pattern.Config "AndroidSystemBrowserOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "showTitle", T<bool>
                     "hideToolbarOnScroll", T<bool>
                     "viewStyle", AndroidViewStyle.Type
-                    "bottomSheetOptions", AndroidBottomSheet.Type
                     "startAnimation", AndroidAnimation.Type
                     "exitAnimation", AndroidAnimation.Type
+                ]
+                Optional = [
+                    ("bottomSheetOptions", AndroidBottomSheet.Type)
                 ]
             }
 
         let iOSSystemBrowserOptions = 
             Pattern.Config "iOSSystemBrowserOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "closeButtonText", DismissStyle.Type
                     "viewStyle", iOSViewStyle.Type
                     "animationEffect", iOSAnimation.Type
                     "enableBarsCollapsing", T<bool>
                     "enableReadersMode", T<bool>
                 ]
+                Optional = []
             }
 
         let OpenInDefaultParameterModel = 
             Pattern.Config "OpenInDefaultParameterModel" {
-                Required = []
-                Optional = [
-                    "url", T<string>
+                Required = [
+                    ("url", T<string>)
                 ]
+                Optional = []
             }
 
         let SystemBrowserOptions = 
             Pattern.Config "SystemBrowserOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "android", AndroidSystemBrowserOptions.Type
                     "iOS", iOSSystemBrowserOptions.Type
                 ]
+                Optional = []
             }
 
         let OpenInSystemBrowserParameterModel = 
             Pattern.Config "OpenInSystemBrowserParameterModel" {
-                Required = []
-                Optional = [
+                Required = [
+                    "url", T<string>
                     "options", SystemBrowserOptions.Type
                 ]
+                Optional = []
             }
+
+        let CustomHeaders = 
+            Class "CustomHeaders"
+            |+> Instance [
+                "" =@ T<string> |> Indexed T<string>
+            ]
 
         let WebViewOptions = 
             Pattern.Config "WebViewOptions" {
-                Required = []
-                Optional = [
+                Required = [
                     "showURL", T<bool>
                     "showToolbar", T<bool>
                     "clearCache", T<bool>
@@ -1648,17 +1975,30 @@ module Definition =
                     "toolbarPosition", ToolbarPosition.Type
                     "showNavigationButtons", T<bool>
                     "leftToRight", T<bool>
-                    "customWebViewUserAgent", T<string>
                     "android", AndroidWebViewOptions.Type
                     "iOS", iOSWebViewOptions.Type
+                ]
+                Optional = [
+                    ("customWebViewUserAgent", T<string>)
                 ]
             }
 
         let OpenInWebViewParameterModel = 
             Pattern.Config "OpenInWebViewParameterModel" {
+                Required = [
+                    "url", T<string>
+                    "options", WebViewOptions.Type
+                ]
+                Optional = [
+                    ("customHeaders", CustomHeaders.Type)
+                ]
+            }
+
+        let BrowserPageNavigationCompletedEventData = 
+            Pattern.Config "BrowserPageNavigationCompletedEventData" {
                 Required = []
                 Optional = [
-                    "options", WebViewOptions.Type
+                    ("url", T<string>)
                 ]
             }
 
@@ -1670,6 +2010,9 @@ module Definition =
                 "openInExternalBrowser" => OpenInDefaultParameterModel?model ^-> T<Promise<unit>>
                 "close" => T<unit> ^-> T<Promise<unit>>
                 "addListener" => T<string>?eventName * ListenFunctionType T<unit>?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'browserClosed' and 'browserPageLoaded' events."
+                "addListener" => T<string>?eventName * ListenFunctionType BrowserPageNavigationCompletedEventData?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'browserPageNavigationCompleted' event."
                 "removeAllListeners" => T<unit> ^-> T<unit>
             ]
  
@@ -1692,39 +2035,46 @@ module Definition =
 
         let KeyboardStyleOptions = 
             Pattern.Config "KeyboardStyleOptions" {
-                Required = []
-                Optional = [
-                    "style", KeyboardStyle.Type
+                Required = [
+                    ("style", KeyboardStyle.Type)
                 ]
+                Optional = []
             }
 
         let KeyboardResizeOptions = 
             Pattern.Config "KeyboardResizeOptions" {
-                Required = []
-                Optional = [
-                    "mode", KeyboardResize.Type
+                Required = [
+                    ("mode", KeyboardResize.Type)
                 ]
+                Optional = []
             }
 
         let KeyboardInfo = 
             Pattern.Config "KeyboardInfo" {
-                Required = []
-                Optional = [
-                    "keyboardHeight", T<int>
+                Required = [
+                    ("keyboardHeight", T<int>)
                 ]
+                Optional = []
             }
 
         let ScrollOptions =
             Pattern.Config "ScrollOptions" {
-                Required = [ "isDisabled", T<bool> ]
+                Required = [ ("isDisabled", T<bool>) ]
                 Optional = []
             }
 
         let AccessoryBarOptions =
             Pattern.Config "AccessoryBarOptions" {
-                Required = [ "isVisible", T<bool> ]
+                Required = [ ("isVisible", T<bool>) ]
                 Optional = []
             }
+
+        let KeyboardBackdropColor =
+            Pattern.EnumStrings "KeyboardBackdropColor" [
+                "off"
+                "auto"
+                "dom"
+            ]
 
         let KeyboardOptions =
             Pattern.Config "KeyboardOptions" {
@@ -1733,6 +2083,8 @@ module Definition =
                     "resize", KeyboardResize.Type
                     "style", KeyboardStyle.Type
                     "resizeOnFullScreen", T<bool>
+                    // Since 8.0.4 (iOS only).
+                    "autoBackdropColor", KeyboardBackdropColor.Type
                 ]
             }
 
@@ -1740,7 +2092,7 @@ module Definition =
             Pattern.Config "PluginsConfig" {
                 Required = []
                 Optional = [
-                    "Keyboard", KeyboardOptions.Type
+                    ("Keyboard", KeyboardOptions.Type)
                 ]
             }
 
@@ -1787,21 +2139,59 @@ module Definition =
             ]
 
         let Importance = 
-            Pattern.EnumStrings "Importance" ["1"; "2"; "3"; "4"; "5"]
+            Pattern.EnumStrings "Importance" ["0"; "1"; "2"; "3"; "4"; "5"]
 
         let Visibility = 
             Pattern.EnumStrings "Visibility" ["-1"; "0"; "1"]
 
+        let InterruptionLevel = 
+            Pattern.EnumStrings "InterruptionLevel" [
+                "active"
+                "critical"
+                "passive"
+                "timeSensitive"
+            ]
+
+        let LocalNotificationPresentationOption = 
+            Pattern.EnumStrings "LocalNotificationPresentationOption" [
+                "badge"
+                "sound"
+                "banner"
+                "list"
+            ]
+
+        let NotificationState = 
+            Pattern.EnumStrings "NotificationState" [
+                "SCHEDULED"
+                "TRIGGERED"
+            ]
+
         let LocalNotificationDescriptor = 
             Pattern.Config "LocalNotificationDescriptor" {
-                Required = []
-                Optional = ["id", T<int>]
+                Required = [
+                    ("id", T<int>)
+                ]
+                Optional = []
+            }
+
+        let ScheduleWarning = 
+            Pattern.Config "ScheduleWarning" {
+                Required = [
+                    "code", T<string>
+                    "message", T<string>
+                ]
+                Optional = []
             }
 
         let ScheduleResult = 
             Pattern.Config "ScheduleResult" {
-                Required = []
-                Optional = ["notifications", !| LocalNotificationDescriptor]
+                Required = [
+                    ("notifications", !| LocalNotificationDescriptor)
+                ]
+                Optional = [
+                    // Since 8.3.0.
+                    ("warning", ScheduleWarning.Type)
+                ]
             }
 
         let ScheduleOn = 
@@ -1844,23 +2234,25 @@ module Definition =
 
         let Attachment =
             Pattern.Config "Attachment" {
-                Required = []
-                Optional = [
+                Required = [
                     "id", T<string>
                     "url", T<string>
-                    "options", AttachmentOptions.Type
+                ]
+                Optional = [
+                    ("options", AttachmentOptions.Type)
                 ]
             }
 
         let LocalNotificationSchema = 
             Pattern.Config "LocalNotificationSchema" {
-                Required = []
-                Optional = [
+                Required = [
                     "title", T<string>
                     "body", T<string>
+                    "id", T<int>
+                ]
+                Optional = [
                     "largeBody", T<string>
                     "summaryText", T<string>
-                    "id", T<int>
                     "schedule", Schedule.Type
                     "sound", T<string>
                     "smallIcon", T<string>
@@ -1871,6 +2263,9 @@ module Definition =
                     "extra", T<obj>
                     "threadIdentifier", T<string>
                     "summaryArgument", T<string>
+                    // Since 8.1.0 (iOS only).
+                    "relevanceScore", T<float>
+                    "interruptionLevel", InterruptionLevel.Type
                     "group", T<string>
                     "groupSummary", T<bool>
                     "channelId", T<string>
@@ -1878,22 +2273,29 @@ module Definition =
                     "autoCancel", T<bool>
                     "inboxList", !| T<string>
                     "silent", T<bool>
+                    "badge", T<int>
+                    "foreground", T<bool>
+                    "isExactNotification", T<bool>
+                    "isExactMandatory", T<bool>
                 ]
             }
 
         let ScheduleOptions = 
             Pattern.Config "ScheduleOptions" {
-                Required = []
-                Optional = ["notifications", !| LocalNotificationSchema]
+                Required = [
+                    ("notifications", !| LocalNotificationSchema)
+                ]
+                Optional = []
             }
 
         let PendingLocalNotificationSchema = 
             Pattern.Config "PendingLocalNotificationSchema" {
-                Required = []
-                Optional = [
+                Required = [
                     "title", T<string>
                     "body", T<string>
                     "id", T<int>
+                ]
+                Optional = [
                     "schedule", Schedule.Type
                     "extra", T<obj>
                 ]
@@ -1901,18 +2303,19 @@ module Definition =
 
         let PendingResult = 
             Pattern.Config "PendingResult" {
-                Required = []
-                Optional = [
-                    "notifications", !| PendingLocalNotificationSchema
+                Required = [
+                    ("notifications", !| PendingLocalNotificationSchema)
                 ]
+                Optional = []
             }
 
         let Action = 
             Pattern.Config "Action" {
-                Required = []
-                Optional = [
+                Required = [
                     "id", T<string>
                     "title", T<string>
+                ]
+                Optional = [
                     "requiresAuthentication", T<bool>
                     "foreground", T<bool>
                     "destructive", T<bool>
@@ -1924,9 +2327,10 @@ module Definition =
 
         let ActionType = 
             Pattern.Config "ActionType" {
-                Required = []
+                Required = [
+                    ("id", T<string>)
+                ]
                 Optional = [
-                    "id", T<string>
                     "actions", !| Action
                     "iosHiddenPreviewsBodyPlaceholder", T<string>
                     "iosCustomDismissAction", T<bool>
@@ -1938,36 +2342,69 @@ module Definition =
 
         let RegisterActionTypesOptions = 
             Pattern.Config "RegisterActionTypesOptions" {
-                Required = []
-                Optional = [
-                    "types", !| ActionType
+                Required = [
+                    ("types", !| ActionType)
                 ]
+                Optional = []
             }
 
         let CancelOptions = 
             Pattern.Config "CancelOptions" {
+                Required = [
+                    ("notifications", !| LocalNotificationDescriptor)
+                ]
+                Optional = []
+            }
+
+        let RemoveByIdsOptions = 
+            Pattern.Config "RemoveByIdsOptions" {
+                Required = [
+                    ("ids", !| T<int>)
+                ]
+                Optional = []
+            }
+
+        let GetByIdsOptions = 
+            Pattern.Config "GetByIdsOptions" {
+                Required = [
+                    ("ids", !| T<int>)
+                ]
+                Optional = []
+            }
+
+        let GetAllOptions = 
+            Pattern.Config "GetAllOptions" {
                 Required = []
                 Optional = [
-                    "types", !| LocalNotificationDescriptor
+                    ("state", NotificationState.Type)
                 ]
+            }
+
+        let GetNotificationsResult = 
+            Pattern.Config "GetNotificationsResult" {
+                Required = [
+                    ("notifications", !| LocalNotificationSchema)
+                ]
+                Optional = []
             }
 
         let EnabledResult = 
             Pattern.Config "EnabledResult" {
-                Required = []
-                Optional = [
-                    "value", T<bool>
+                Required = [
+                    ("value", T<bool>)
                 ]
+                Optional = []
             }
 
         let DeliveredNotificationSchema = 
             Pattern.Config "DeliveredNotificationSchema" {
-                Required = []
-                Optional = [
+                Required = [
                     "id", T<int>
-                    "tag", T<string>
                     "title", T<string>
                     "body", T<string>
+                ]
+                Optional = [
+                    "tag", T<string>
                     "group", T<string>
                     "groupSummary", T<bool>
                     "data", T<obj>
@@ -1981,21 +2418,21 @@ module Definition =
 
         let DeliveredNotifications = 
             Pattern.Config "DeliveredNotifications" {
-                Required = []
-                Optional = [
-                    "notifications", !| DeliveredNotificationSchema
+                Required = [
+                    ("notifications", !| DeliveredNotificationSchema)
                 ]
+                Optional = []
             }
 
         let Channel = 
             Pattern.Config "Channel" {
-                Required = []
-                Optional = [
+                Required = [
                     "id", T<string>
                     "name", T<string>
+                ]
+                Optional = [
                     "description", T<string>
                     "sound", T<string>
-                    "group", T<string>
                     "importance", Importance.Type
                     "visibility", Visibility.Type
                     "lights", T<bool>
@@ -2006,35 +2443,36 @@ module Definition =
 
         let ListChannelsResult = 
             Pattern.Config "ListChannelsResult" {
-                Required = []
-                Optional = [
-                    "channels", !| Channel
+                Required = [
+                    ("channels", !| Channel)
                 ]
+                Optional = []
             }
 
         let PermissionStatus = 
             Pattern.Config "PermissionStatus" {
-                Required = []
-                Optional = [
-                    "display", PermissionState.Type
+                Required = [
+                    ("display", PermissionState.Type)
                 ]
+                Optional = []
             } 
 
         let SettingsPermissionStatus = 
             Pattern.Config "SettingsPermissionStatus" {
-                Required = []
-                Optional = [
-                    "exact_alarm", PermissionState.Type
+                Required = [
+                    ("exact_alarm", PermissionState.Type)
                 ]
+                Optional = []
             }
 
         let ActionPerformed = 
             Pattern.Config "ActionPerformed" {
-                Required = []
-                Optional = [
+                Required = [
                     "actionId", T<string>
-                    "inputValue", T<string>
                     "notification", LocalNotificationSchema.Type
+                ]
+                Optional = [
+                    ("inputValue", T<string>)
                 ]
             }
 
@@ -2045,6 +2483,8 @@ module Definition =
                     "smallIcon", T<string>
                     "iconColor", T<string>
                     "sound", T<string>
+                    // Since 8.2.0 (iOS only).
+                    "presentationOptions", !| LocalNotificationPresentationOption
                 ]
             }
 
@@ -2052,13 +2492,13 @@ module Definition =
             Pattern.Config "PluginsConfig" {
                 Required = []
                 Optional = [
-                    "LocalNotifications", LocalNotificationsOptions.Type
+                    ("LocalNotifications", LocalNotificationsOptions.Type)
                 ]
             }
 
         let DeleteChannelOptions = 
             Pattern.Config "DeleteChannelOptions" {
-                Required = [ "id", T<string> ]
+                Required = [ ("id", T<string>) ]
                 Optional = []
             }
         
@@ -2066,13 +2506,23 @@ module Definition =
             Class "LocalNotificationsPlugin"
             |+> Instance [
                 "schedule" => ScheduleOptions?options ^-> T<Promise<_>>[ScheduleResult]
+                "update" => ScheduleOptions?options ^-> T<Promise<_>>[ScheduleResult]
+                |> WithComment "Update an already scheduled notification. Since 8.3.0."
                 "getPending" => T<unit> ^-> T<Promise<_>>[PendingResult]
                 "registerActionTypes" => RegisterActionTypesOptions?options ^-> T<Promise<unit>>
                 "cancel" => CancelOptions?options ^-> T<Promise<unit>>
+                "cancelAll" => T<unit> ^-> T<Promise<unit>>
+                |> WithComment "Cancel all scheduled notifications. Since 8.3.0."
                 "areEnabled" => T<unit> ^-> T<Promise<_>>[EnabledResult]
                 "getDeliveredNotifications" => T<unit> ^-> T<Promise<_>>[DeliveredNotifications]
                 "removeDeliveredNotifications" => DeliveredNotifications?delivered ^-> T<Promise<unit>>
+                "removeDeliveredNotificationsById" => RemoveByIdsOptions?options ^-> T<Promise<unit>>
+                |> WithComment "Remove delivered notifications by id. Since 8.3.0."
                 "removeAllDeliveredNotifications" => T<unit> ^-> T<Promise<unit>>
+                "getByIds" => GetByIdsOptions?options ^-> T<Promise<_>>[GetNotificationsResult]
+                |> WithComment "Get notifications by id. Since 8.3.0."
+                "getAll" => !?GetAllOptions?options ^-> T<Promise<_>>[GetNotificationsResult]
+                |> WithComment "Get all scheduled and/or delivered notifications. Since 8.3.0."
                 "createChannel" => Channel?channel ^-> T<Promise<unit>>
                 "deleteChannel" => DeleteChannelOptions?args ^-> T<Promise<unit>>
                 "listChannels" => T<unit> ^-> T<Promise<_>>[ListChannelsResult]
@@ -2091,33 +2541,33 @@ module Definition =
     module Motion = 
         let Acceleration = 
             Pattern.Config "Acceleration" {
-                Required = []
-                Optional = [
+                Required = [
                     "x", T<double>
                     "y", T<double>
                     "z", T<double>
                 ]
+                Optional = []
             }
 
         let RotationRate = 
             Pattern.Config "RotationRate" {
-                Required = []
-                Optional = [
+                Required = [
                     "alpha", T<double>
                     "beta", T<double>
                     "gamma", T<double>
                 ]
+                Optional = []
             }
 
         let AccelListenerEvent = 
             Pattern.Config "AccelListenerEvent" {
-                Required = []
-                Optional = [
+                Required = [
                     "acceleration", Acceleration.Type
                     "accelerationIncludingGravity", Acceleration.Type
                     "rotationRate", RotationRate.Type
                     "interval", T<int>
                 ]
+                Optional = []
             }
 
         let AccelListener = AccelListenerEvent ^-> T<unit>
@@ -2131,8 +2581,9 @@ module Definition =
             |+> Instance [
                 "addListener" => T<string>?eventName * AccelListener?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "Listens for 'accel' event."
-                "addListener" => T<string>?evenName * OrientationListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                "addListener" => T<string>?eventName * OrientationListener?listenFunc ^-> T<Promise<_>>[PluginListenerHandle]
                 |> WithComment "Listens for 'orientation' event."
+                "removeAllListeners" => T<unit> ^-> T<Promise<unit>>
             ]
 
     [<AutoOpen>]
@@ -2165,18 +2616,18 @@ module Definition =
         let ConfigureOptions =
             Pattern.Config "ConfigureOptions" {
                 Required = []
-                Optional = ["group", T<string>]
+                Optional = [("group", T<string>)]
             }
 
         let GetOptions =
             Pattern.Config "GetOptions" {
-                Required = ["key", T<string>]
+                Required = [("key", T<string>)]
                 Optional = []
             }
 
         let GetResult =
             Pattern.Config "GetResult" {
-                Required = ["value", T<string> + T<unit>]
+                Required = [("value", T<string> + T<unit>)]
                 Optional = []
             }
 
@@ -2192,7 +2643,7 @@ module Definition =
         let RemoveOptions =
             Pattern.Config "RemoveOptions" {
                 Required = [
-                    "key", T<string>
+                    ("key", T<string>)
                 ]
                 Optional = []
             }
@@ -2200,7 +2651,7 @@ module Definition =
         let KeysResult =
             Pattern.Config "KeysResult" {
                 Required = [
-                    "keys", !|T<string> 
+                    ("keys", !|T<string>) 
                 ]
                 Optional = []
             }
@@ -2234,18 +2685,22 @@ module Definition =
                 "badge"
                 "sound"
                 "alert"
+                // Since 8.0.0.
+                "banner"
+                "list"
             ]
 
         let PluginsConfig = 
             Pattern.Config "PluginsConfig" {
-                Required = []
-                Optional = [
-                    "presentationOptions", PresentationOption.Type
+                Required = [
+                    ("presentationOptions", !| PresentationOption)
                 ]
+                Optional = []
             }
 
         let Importance =
             Pattern.EnumStrings "Importance" [
+                "0"
                 "1"
                 "2"
                 "3"
@@ -2263,7 +2718,7 @@ module Definition =
         let PermissionStatus =
             Pattern.Config "PermissionStatus" {
                 Required = [
-                    "receive", PermissionState.Type
+                    ("receive", PermissionState.Type)
                 ]
                 Optional = []
             }
@@ -2287,16 +2742,17 @@ module Definition =
 
         let PushNotificationSchema =
             Pattern.Config "PushNotificationSchema" {
-                Required = []
+                Required = [
+                    "id", T<string>
+                    "data", T<obj>
+                ]
                 Optional = [
                     "title", T<string>
                     "subtitle", T<string>
                     "body", T<string>
-                    "id", T<string>
                     "tag", T<string>
                     "badge", T<int>
                     "notification", T<obj>
-                    "data", T<obj>
                     "click_action", T<string>
                     "link", T<string>
                     "group", T<string>
@@ -2306,18 +2762,19 @@ module Definition =
 
         let ActionPerformed =
             Pattern.Config "ActionPerformed" {
-                Required = []
-                Optional = [
+                Required = [
                     "actionId", T<string>
                     "notification", PushNotificationSchema.Type
-                    "inputValue", T<string>
+                ]
+                Optional = [
+                    ("inputValue", T<string>)
                 ]
             }
 
         let Token =
             Pattern.Config "Token" {
                 Required = [
-                    "value", T<string>
+                    ("value", T<string>)
                 ]
                 Optional = []
             }
@@ -2325,7 +2782,7 @@ module Definition =
         let RegistrationError =
             Pattern.Config "RegistrationError" {
                 Required = [
-                    "error", T<string>
+                    ("error", T<string>)
                 ]
                 Optional = []
             }
@@ -2333,7 +2790,7 @@ module Definition =
         let DeliveredNotifications =
             Pattern.Config "DeliveredNotifications" {
                 Required = [
-                    "notifications", !| PushNotificationSchema
+                    ("notifications", !| PushNotificationSchema)
                 ]
                 Optional = []
             }
@@ -2341,7 +2798,7 @@ module Definition =
         let ListChannelsResult =
             Pattern.Config "ListChannelsResult" {
                 Required = [
-                    "channels", !| Channel
+                    ("channels", !| Channel)
                 ]
                 Optional = []
             }
@@ -2349,7 +2806,7 @@ module Definition =
         let DeleteChannelArgs = 
             Pattern.Config "DeleteChannelArgs" {
                 Required = [
-                    "id", T<string>
+                    ("id", T<string>)
                 ]
                 Optional = []
             }
@@ -2395,7 +2852,7 @@ module Definition =
         let OrientationLockOptions =
             Pattern.Config "OrientationLockOptions" {
                 Required = [
-                    "orientation", OrientationLockType.Type
+                    ("orientation", OrientationLockType.Type)
                 ]
                 Optional = []
             }
@@ -2403,7 +2860,7 @@ module Definition =
         let ScreenOrientationResult =
             Pattern.Config "ScreenOrientationResult" {
                 Required = [
-                    "type", OrientationLockType.Type
+                    ("type", OrientationLockType.Type)
                 ]
                 Optional = []
             }
@@ -2424,17 +2881,17 @@ module Definition =
         let SpeakOptions =
             Pattern.Config "SpeakOptions" {
                 Required = [
-                    "value", T<string>
+                    ("value", T<string>)
                 ]
                 Optional = [
-                    "language", T<string>
+                    ("language", T<string>)
                 ]
             }
 
         let ScreenReaderState =
             Pattern.Config "ScreenReaderState" {
                 Required = [
-                    "value", T<bool>
+                    ("value", T<bool>)
                 ]
                 Optional = []
             }
@@ -2442,12 +2899,12 @@ module Definition =
         let IsEnabledResult = 
             Pattern.Config "IsEnabledResult" {
                 Required = [
-                    "value", T<bool>
+                    ("value", T<bool>)
                 ]
                 Optional = []
             }
 
-        let StateChangeListener = ScreenReaderState?state ^-> T<unit>
+        let StateChangeListener = ScreenReaderState ^-> T<unit>
 
         let ScreenReaderPlugin =
             Class "ScreenReaderPlugin"
@@ -2477,14 +2934,14 @@ module Definition =
             Pattern.Config "ShareResult" {
                 Required = []
                 Optional = [
-                    "activityType", T<string>
+                    ("activityType", T<string>)
                 ]
             }
 
         let CanShareResult =
             Pattern.Config "CanShareResult" {
                 Required = [
-                    "value", T<bool>
+                    ("value", T<bool>)
                 ]
                 Optional = []
             }
@@ -2513,7 +2970,7 @@ module Definition =
             Pattern.Config "HideOptions" {
                 Required = []
                 Optional = [
-                    "fadeOutDuration", T<int>
+                    ("fadeOutDuration", T<int>)
                 ]
             }
 
@@ -2542,7 +2999,7 @@ module Definition =
             Pattern.Config "PluginsConfig" {
                 Required = []
                 Optional = [
-                    "SplashScreen", SplashScreenOptions.Type
+                    ("SplashScreen", SplashScreenOptions.Type)
                 ]
             }
 
@@ -2563,36 +3020,55 @@ module Definition =
 
         let StyleOptions =
             Pattern.Config "StyleOptions" {
-                Required = ["style", Style.Type]
+                Required = [("style", Style.Type)]
                 Optional = []
             }
 
         let AnimationOptions =
             Pattern.Config "AnimationOptions" {
                 Required = []
-                Optional = ["animation", Animation.Type]
+                Optional = [("animation", Animation.Type)]
             }
 
         let BackgroundColorOptions =
             Pattern.Config "BackgroundColorOptions" {
-                Required = ["color", T<string>]
+                Required = [("color", T<string>)]
                 Optional = []
             }
 
         let StatusBarInfo =
             Pattern.Config "StatusBarInfo" {
-                Required = []
-                Optional = [
+                Required = [
                     "visible", T<bool>
                     "style", Style.Type
                     "color", T<string>
                     "overlays", T<bool>
+                    "height", T<int>
+                ]
+                Optional = []
+            }
+
+        let StatusBarOptions =
+            Pattern.Config "StatusBarOptions" {
+                Required = []
+                Optional = [
+                    "overlaysWebView", T<bool>
+                    "style", Style.Type
+                    "backgroundColor", T<string>
+                ]
+            }
+
+        let PluginsConfig =
+            Pattern.Config "PluginsConfig" {
+                Required = []
+                Optional = [
+                    ("StatusBar", StatusBarOptions.Type)
                 ]
             }
 
         let SetOverlaysWebViewOptions =
             Pattern.Config "SetOverlaysWebViewOptions" {
-                Required = ["overlay", T<bool>]
+                Required = [("overlay", T<bool>)]
                 Optional = []
             }
 
@@ -2605,6 +3081,8 @@ module Definition =
                 "hide" => !?AnimationOptions?options ^-> T<Promise<unit>>
                 "getInfo" => T<unit> ^-> T<Promise<_>>[StatusBarInfo]
                 "setOverlaysWebView" => SetOverlaysWebViewOptions?options ^-> T<Promise<unit>>
+                "addListener" => T<string>?eventName * ListenFunctionType StatusBarInfo?listenerFunc ^-> T<Promise<_>>[PluginListenerHandle]
+                |> WithComment "Listens for 'statusBarVisibilityChanged' and 'statusBarOverlayChanged' events."
             ]
 
     [<AutoOpen>]
@@ -2612,7 +3090,7 @@ module Definition =
         let GetResult = 
             Pattern.Config "GetResult" {
                 Required = [
-                    "value", T<int>
+                    ("value", T<float>)
                 ]
                 Optional = []
             }
@@ -2620,7 +3098,7 @@ module Definition =
         let GetPreferredResult = 
             Pattern.Config "GetPreferredResult" {
                 Required = [
-                    "value", T<int>
+                    ("value", T<float>)
                 ]
                 Optional = []
             }
@@ -2628,7 +3106,7 @@ module Definition =
         let SetOptions = 
             Pattern.Config "SetOptions" {
                 Required = [
-                    "value", T<int>
+                    ("value", T<float>)
                 ]
                 Optional = []
             }
@@ -2643,14 +3121,27 @@ module Definition =
 
     [<AutoOpen>]
     module Toast = 
+        let ToastDuration =
+            Pattern.EnumStrings "ToastDuration" [
+                "short"
+                "long"
+            ]
+
+        let ToastPosition =
+            Pattern.EnumStrings "ToastPosition" [
+                "top"
+                "center"
+                "bottom"
+            ]
+
         let ShowOptions = 
             Pattern.Config "ShowOptions" {
                 Required = [
-                    "text", T<string>
+                    ("text", T<string>)
                 ]
                 Optional = [
-                    "duration", T<string>  
-                    "position", T<string> 
+                    "duration", ToastDuration.Type
+                    "position", ToastPosition.Type
                 ]
             }
 
@@ -2665,7 +3156,7 @@ module Definition =
         let CommandData = 
             Pattern.Config "CommandData" {
                 Required = [
-                    "command", T<string>
+                    ("command", T<string>)
                 ]
                 Optional = []
             }
@@ -2673,7 +3164,7 @@ module Definition =
         let WatchUIOptions = 
             Pattern.Config "WatchUIOptions" {
                 Required = [
-                    "watchUI", T<string>
+                    ("watchUI", T<string>)
                 ]
                 Optional = []
             }
@@ -2681,7 +3172,7 @@ module Definition =
         let WatchDataOptions = 
             Pattern.Config "WatchDataOptions" {
                 Required = [
-                    "data", T<obj>
+                    ("data", T<obj>)
                 ]
                 Optional = []
             }
@@ -2698,36 +3189,36 @@ module Definition =
     [<AutoOpen>]
     module BiometricAuth = 
         let BiometryType =
-            Pattern.EnumStrings "BiometryType" [
-                "none"
-                "touchId"
-                "faceId"
-                "fingerprintAuthentication"
-                "faceAuthentication"
-                "irisAuthentication"
+            Pattern.EnumInlines "BiometryType" [
+                "none", "0"
+                "touchId", "1"
+                "faceId", "2"
+                "fingerprintAuthentication", "3"
+                "faceAuthentication", "4"
+                "irisAuthentication", "5"
             ]
 
         let AndroidBiometryStrength =
-            Pattern.EnumStrings "AndroidBiometryStrength" [
-                "weak"
-                "strong"
+            Pattern.EnumInlines "AndroidBiometryStrength" [
+                "weak", "0"
+                "strong", "1"
             ]
 
         let BiometryErrorType =
-            Pattern.EnumStrings "BiometryErrorType" [
-                "none"
-                "appCancel"
-                "authenticationFailed"
-                "invalidContext"
-                "notInteractive"
-                "passcodeNotSet"
-                "systemCancel"
-                "userCancel"
-                "userFallback"
-                "biometryLockout"
-                "biometryNotAvailable"
-                "biometryNotEnrolled"
-                "noDeviceCredential"
+            Pattern.EnumInlines "BiometryErrorType" [
+                "none", "\"\""
+                "appCancel", "\"appCancel\""
+                "authenticationFailed", "\"authenticationFailed\""
+                "invalidContext", "\"invalidContext\""
+                "notInteractive", "\"notInteractive\""
+                "passcodeNotSet", "\"passcodeNotSet\""
+                "systemCancel", "\"systemCancel\""
+                "userCancel", "\"userCancel\""
+                "userFallback", "\"userFallback\""
+                "biometryLockout", "\"biometryLockout\""
+                "biometryNotAvailable", "\"biometryNotAvailable\""
+                "biometryNotEnrolled", "\"biometryNotEnrolled\""
+                "noDeviceCredential", "\"noDeviceCredential\""
             ]
 
         let AuthenticateOptions =
@@ -2798,10 +3289,10 @@ module Definition =
             |> Import "AppLauncher" "@capacitor/app-launcher"
             "App" =? AppPlugin
             |> Import "App" "@capacitor/app"
-            "BackgroundRunnerPlugin" =? BackgroundRunnerPlugin
+            "BackgroundRunner" =? BackgroundRunnerPlugin
             |> Import "BackgroundRunner" "@capacitor/background-runner"
             "BarcodeScanner" =? BarcodeScannerPlugin
-            |> Import "BarcodeScanner" "@capacitor/barcode-scanner"
+            |> Import "CapacitorBarcodeScanner" "@capacitor/barcode-scanner"
             "Browser" =? BrowserPlugin
             |> Import "Browser" "@capacitor/browser"
             "Camera" =? CameraPlugin
@@ -2863,6 +3354,7 @@ module Definition =
                 PermissionState
                 PluginListenerHandle
                 PresentationStyle
+                CapacitorCore
 
                 BiometricAuthPlugin
                 ActionSheetPlugin
@@ -2908,11 +3400,12 @@ module Definition =
                 OpenURLOptions; OpenURLResult; CanOpenURLOptions; CanOpenURLResult
             ]
             Namespace "WebSharper.Capacitor.App" [
-                BackButtonListenerEvent; RestoredListenerEvent; URLOpenListenerEvent; AppLaunchUrl; AppState; AppInfo
+                BackButtonListenerEvent; RestoredListenerEvent; RestoredListenerError; URLOpenListenerEvent; AppLaunchUrl; AppState; AppInfo
+                AppLanguageCode; ToggleBackButtonHandlerOptions; AppOptions; App.PluginsConfig
             ]
             Namespace "WebSharper.Capacitor.BackgroundRunner" [
                 BackgroundRunnerOptions; BackgroundRunner.PluginsConfig; BackgroundRunner.PermissionStatus; 
-                DispatchEventOptions; RequestPermissionOptions; API
+                DispatchEventOptions; RequestPermissionOptions; API; NotificationActionEvent
             ]
             Namespace "WebSharper.Capacitor.BarcodeScanner" [
                 CapacitorBarcodeScannerOptions; WebOptions; AndroidScanningLibrary; CapacitorBarcodeScannerTypeHint
@@ -2923,6 +3416,9 @@ module Definition =
             Namespace "WebSharper.Capacitor.Camera" [
                 ImageOptions; Photo; GalleryImageOptions; GalleryPhotos; Camera.PermissionStatus; CameraPluginPermissions
                 CameraPermissionState; CameraPermissionType; CameraResultType; CameraSource; CameraDirection; GalleryPhoto
+                MediaType; MediaTypeSelection; EncodingType; Editable; CameraErrorCode; TakePhotoOptions; RecordVideoOptions
+                PlayVideoOptions; ChooseFromGalleryOptions; EditPhotoOptions; EditPhotoResult; EditURIPhotoOptions
+                MediaMetadata; MediaResult; MediaResults
             ]
             Namespace "WebSharper.Capacitor.Clipboard" [
                 ReadResult; WriteOptions
@@ -2941,7 +3437,8 @@ module Definition =
                 StatOptions; StatResult; GetUriOptions; GetUriResult; ReaddirOptions; FileInfo
                 FileType; RmdirOptions; MkdirOptions; DeleteFileOptions; AppendFileOptions
                 WriteFileOptions; WriteFileResult; ReadFileOptions; Directory
-                ProgressStatus; CopyOptions; Encoding; ReadFileResult 
+                ProgressStatus; CopyOptions; Encoding; ReadFileResult
+                ReadFileInChunksOptions
             ]
             Namespace "WebSharper.Capacitor.Geolocation" [
                 GeolocationPluginPermissions; Geolocation.PermissionStatus; ClearWatchOptions; PositionOptions
@@ -2952,23 +3449,24 @@ module Definition =
                 MarkerClickCallbackData; MapClickCallbackData; PolylineCallbackData; ClusterClickCallbackData; MarkerCallbackData
                 CameraMoveStartedCallbackData; CameraIdleCallbackData; LatLngBounds; LatLngBoundsInterface; MapPadding; MapType
                 CameraConfig; Polyline; StyleSpan; Circle; Polygon; Marker; Point; Size; MapReadyCallbackData; LatLng; MapListenerCallback
+                TileOverlay
             ]
             Namespace "WebSharper.Capacitor.Haptics" [
                 VibrateOptions; NotificationOptions; ImpactOptions; NotificationType; ImpactStyle 
             ]
             Namespace "WebSharper.Capacitor.Http" [
-                HttpOptions; HttpResponse; HttpHeaders; HttpParams
+                HttpOptions; HttpResponse; HttpHeaders; HttpParams; HttpResponseType; HttpDataType
             ]
             Namespace "WebSharper.Capacitor.InAppBrowser" [
                 OpenInWebViewParameterModel; WebViewOptions; OpenInSystemBrowserParameterModel
                 SystemBrowserOptions; OpenInDefaultParameterModel; iOSSystemBrowserOptions
                 AndroidSystemBrowserOptions; AndroidBottomSheet; iOSWebViewOptions
                 AndroidWebViewOptions; DismissStyle; AndroidAnimation; AndroidViewStyle
-                iOSAnimation; ToolbarPosition; iOSViewStyle
+                iOSAnimation; ToolbarPosition; iOSViewStyle; CustomHeaders; BrowserPageNavigationCompletedEventData
             ]
             Namespace "WebSharper.Capacitor.Keyboard" [
                 Keyboard.PluginsConfig; KeyboardOptions; AccessoryBarOptions; ScrollOptions; KeyboardResize
-                KeyboardInfo; KeyboardResizeOptions; KeyboardStyleOptions; KeyboardStyle
+                KeyboardInfo; KeyboardResizeOptions; KeyboardStyleOptions; KeyboardStyle; KeyboardBackdropColor
             ]
             Namespace "WebSharper.Capacitor.LocalNotifications" [
                 DeleteChannelOptions; LocalNotifications.PluginsConfig; LocalNotificationsOptions; LocalNotifications.ActionPerformed; SettingsPermissionStatus
@@ -2977,6 +3475,8 @@ module Definition =
                 EnabledResult; CancelOptions; RegisterActionTypesOptions; ActionType; Action; PendingResult; LocalNotifications.Importance
                 PendingLocalNotificationSchema; ScheduleOptions; LocalNotificationSchema; Attachment; AttachmentOptions
                 Schedule; ScheduleOn; ScheduleResult; LocalNotificationDescriptor; Weekday; ScheduleEvery
+                InterruptionLevel; LocalNotificationPresentationOption; NotificationState; ScheduleWarning
+                RemoveByIdsOptions; GetByIdsOptions; GetAllOptions; GetNotificationsResult
             ]
             Namespace "WebSharper.Capacitor.Motion" [
                 OrientationListenerEvent; AccelListenerEvent; Acceleration
@@ -3005,13 +3505,13 @@ module Definition =
             ]
             Namespace "WebSharper.Capacitor.StatusBar" [
                 SetOverlaysWebViewOptions; StatusBarInfo; BackgroundColorOptions
-                AnimationOptions; StyleOptions; Animation; Style
+                AnimationOptions; StyleOptions; Animation; Style; StatusBarOptions; StatusBar.PluginsConfig
             ]
             Namespace "WebSharper.Capacitor.TextZoom" [
                 GetResult; GetPreferredResult; SetOptions
             ]
             Namespace "WebSharper.Capacitor.Toast" [
-                Toast.ShowOptions
+                Toast.ShowOptions; ToastDuration; ToastPosition
             ]
             Namespace "WebSharper.Capacitor.Watch" [
                 CommandData; WatchUIOptions; WatchDataOptions
