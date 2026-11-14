@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSharper.Capacitor — sample</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231e64ff'/%3E%3Cpath d='M7 3h2v2h2l-3 5v-3H6z' fill='white'/%3E%3C/svg%3E" />
+    <script>
+        // Apply a previously chosen theme before first paint. Light is the
+        // default; the key is shared with Client.fs (themeStorageKey).
+        try {
+            var t = localStorage.getItem('websharper-capacitor-theme');
+            if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) { }
+    </script>
+    <link rel="stylesheet" href="site.css" />
+    <!-- The Capacitor plugins are bundled from their npm packages; the WebSharper head is folded in here. -->
+    <!-- ws-head -->
+</head>
+<body>
+    <header class="app-header">
+        <div class="app-titles">
+            <h1>WebSharper.Capacitor</h1>
+            <p>Capacitor plugin bindings for F# — with <a href="https://websharper.com">WebSharper</a></p>
+        </div>
+        <div class="app-actions">
+            <span class="platform-badge" title="Capacitor.getPlatform()">${platform}</span>
+            <button class="btn theme-toggle" ws-onclick="ToggleTheme" title="Switch between the light and dark theme">
+                <span>${themeLabel}</span>
+            </button>
+            <a class="app-source" href="https://github.com/dotnet-websharper/capacitor">Source</a>
+        </div>
+    </header>
+
+    <main class="page">
+        <p class="notice">${notice}</p>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>Platform, App &amp; Device</h2>
+                <p>
+                    The <code>@capacitor/core</code> runtime plus the <code>Device</code>,
+                    <code>App</code>, <code>Network</code> and <code>Motion</code> plugins.
+                    Native-only calls report a graceful error in the browser.
+                </p>
+            </header>
+            <div class="toolbar">
+                <button class="btn btn-primary" ws-onclick="CoreInfo">Core runtime</button>
+                <button class="btn" ws-onclick="DeviceInfo">Device info</button>
+                <button class="btn" ws-onclick="AppInfo">App info</button>
+                <button class="btn" ws-onclick="NetworkInfo">Network status</button>
+                <button class="btn" ws-onclick="ListenApp">Listen app state</button>
+                <button class="btn" ws-onclick="ListenNetwork">Listen network</button>
+                <button class="btn" ws-onclick="ListenMotion">Listen motion</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>Preferences, Cookies &amp; Clipboard</h2>
+                <p>
+                    Key/value storage with <code>Preferences</code>, cookie management
+                    through <code>CapacitorCookies</code>, and the <code>Clipboard</code>
+                    copy/paste pair.
+                </p>
+            </header>
+            <div class="toolbar">
+                <input class="text-input" ws-var="PreferenceValue" placeholder="Value to store" />
+                <button class="btn btn-primary" ws-onclick="PreferencesSet">Preferences: set</button>
+                <button class="btn" ws-onclick="PreferencesGet">get</button>
+                <button class="btn" ws-onclick="PreferencesKeys">keys</button>
+                <button class="btn" ws-onclick="PreferencesRemove">remove</button>
+                <button class="btn" ws-onclick="PreferencesClear">clear</button>
+            </div>
+            <div class="toolbar">
+                <button class="btn" ws-onclick="CookiesSet">Cookies: set</button>
+                <button class="btn" ws-onclick="CookiesGet">get</button>
+                <button class="btn" ws-onclick="CookiesDelete">delete</button>
+                <button class="btn" ws-onclick="CookiesClear">clear</button>
+            </div>
+            <div class="toolbar">
+                <input class="text-input" ws-var="ClipboardValue" placeholder="Text to copy" />
+                <button class="btn" ws-onclick="ClipboardWrite">Clipboard: write</button>
+                <button class="btn" ws-onclick="ClipboardRead">read</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>Filesystem</h2>
+                <p>
+                    The whole <code>Filesystem</code> surface: write, read (including
+                    chunked reads), append, directories, stat/copy/rename, URIs and
+                    downloads inside the app's data directory.
+                </p>
+            </header>
+            <div class="toolbar">
+                <button class="btn btn-primary" ws-onclick="FileWrite">Write</button>
+                <button class="btn" ws-onclick="FileRead">Read</button>
+                <button class="btn" ws-onclick="FileReadChunks">Read in chunks</button>
+                <button class="btn" ws-onclick="FileAppend">Append</button>
+                <button class="btn" ws-onclick="FileStat">Stat</button>
+                <button class="btn" ws-onclick="FileCopy">Copy</button>
+                <button class="btn" ws-onclick="FileRename">Rename</button>
+                <button class="btn" ws-onclick="FileUri">URI</button>
+            </div>
+            <div class="toolbar">
+                <button class="btn" ws-onclick="FileMkdir">Mkdir</button>
+                <button class="btn" ws-onclick="FileReaddir">Readdir</button>
+                <button class="btn" ws-onclick="FileDownload">Download</button>
+                <button class="btn" ws-onclick="FilePermissions">Permissions</button>
+                <button class="btn" ws-onclick="FileDelete">Delete</button>
+                <button class="btn" ws-onclick="FileRmdir">Rmdir</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>Camera &amp; Barcode scanner</h2>
+                <p>
+                    <code>TakePhoto</code>, <code>ChooseFromGallery</code>,
+                    <code>RecordVideo</code>, <code>PlayVideo</code> and the permission
+                    flow, plus <code>BarcodeScanner.ScanBarcode</code>. The camera preview
+                    uses the photo's <code>webPath</code>.
+                </p>
+            </header>
+            <div class="media-row">
+                <img class="photo" ws-attr="CameraSrc" alt="Camera preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 140'%3E%3Crect width='180' height='140' fill='%23e9eefb'/%3E%3Cpath d='M70 55h40l-6 40H76z' fill='%23a8b6d4'/%3E%3Ccircle cx='90' cy='50' r='10' fill='%23a8b6d4'/%3E%3C/svg%3E" />
+                <div class="toolbar toolbar-vertical">
+                    <button class="btn btn-primary" ws-onclick="TakePhoto">Take photo</button>
+                    <button class="btn" ws-onclick="ChooseFromGallery">Choose from gallery</button>
+                    <button class="btn" ws-onclick="RecordVideo">Record video</button>
+                    <button class="btn" ws-onclick="PlayVideo">Play last video</button>
+                    <button class="btn" ws-onclick="CameraPermissions">Permissions</button>
+                    <button class="btn" ws-onclick="ScanBarcode">Scan barcode</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>Geolocation</h2>
+                <p>
+                    One-shot and watched positions, including the new
+                    <code>interval</code>/<code>minimumUpdateInterval</code> options.
+                </p>
+            </header>
+            <div class="toolbar">
+                <button class="btn btn-primary" ws-onclick="GeoCurrent">Current position</button>
+                <button class="btn" ws-onclick="GeoWatch">Watch position</button>
+                <button class="btn" ws-onclick="GeoClearWatch">Clear watch</button>
+                <button class="btn" ws-onclick="GeoPermissions">Permissions</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>Dialogs, toast &amp; haptics</h2>
+                <p>
+                    <code>Dialog</code> (alert/confirm/prompt), <code>Toast</code>,
+                    <code>Haptics</code> and <code>ActionSheet</code>.
+                </p>
+            </header>
+            <div class="toolbar">
+                <button class="btn btn-primary" ws-onclick="ShowAlert">Alert</button>
+                <button class="btn" ws-onclick="ShowConfirm">Confirm</button>
+                <button class="btn" ws-onclick="ShowPrompt">Prompt</button>
+                <button class="btn" ws-onclick="ShowToast">Toast</button>
+                <button class="btn" ws-onclick="ShowActionSheet">Action sheet</button>
+            </div>
+            <div class="toolbar">
+                <button class="btn" ws-onclick="HapticImpact">Impact</button>
+                <button class="btn" ws-onclick="HapticNotification">Notification</button>
+                <button class="btn" ws-onclick="HapticVibrate">Vibrate</button>
+                <button class="btn" ws-onclick="HapticSelection">Selection</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>Notifications</h2>
+                <p>
+                    <code>LocalNotifications</code> scheduling, the pending/delivered
+                    queries (including the 8.3 <code>getAll</code>/<code>getByIds</code>
+                    and <code>update</code>/<code>cancelAll</code> methods), channels,
+                    and the <code>PushNotifications</code> registration flow.
+                </p>
+            </header>
+            <div class="toolbar">
+                <button class="btn btn-primary" ws-onclick="LocalPermissions">Permissions</button>
+                <button class="btn" ws-onclick="LocalSchedule">Schedule</button>
+                <button class="btn" ws-onclick="LocalPending">Pending</button>
+                <button class="btn" ws-onclick="LocalDelivered">Delivered</button>
+                <button class="btn" ws-onclick="LocalAll">Get all</button>
+                <button class="btn" ws-onclick="LocalCancelAll">Cancel all</button>
+            </div>
+            <div class="toolbar">
+                <button class="btn" ws-onclick="LocalChannel">Create channel</button>
+                <button class="btn" ws-onclick="LocalListChannels">List channels</button>
+                <button class="btn" ws-onclick="PushRegister">Push: register</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>Share &amp; browsers</h2>
+                <p>
+                    <code>Share</code>, <code>Browser</code>, <code>AppLauncher</code>
+                    and the full <code>InAppBrowser</code> option model.
+                </p>
+            </header>
+            <div class="toolbar">
+                <button class="btn btn-primary" ws-onclick="ShareCanShare">Can share?</button>
+                <button class="btn" ws-onclick="ShareIt">Share</button>
+                <button class="btn" ws-onclick="OpenBrowser">Browser: open</button>
+                <button class="btn" ws-onclick="CloseBrowser">close</button>
+            </div>
+            <div class="toolbar">
+                <button class="btn" ws-onclick="LaunchCanOpen">Can open URL</button>
+                <button class="btn" ws-onclick="LaunchOpen">Open URL</button>
+                <button class="btn" ws-onclick="InAppExternal">InAppBrowser: external</button>
+                <button class="btn" ws-onclick="InAppWebView">in-app web view</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>System UI &amp; platform plugins</h2>
+                <p>
+                    Controls that only do something in a native shell: <code>StatusBar</code>,
+                    <code>Keyboard</code>, <code>ScreenOrientation</code>,
+                    <code>ScreenReader</code>, <code>TextZoom</code>,
+                    <code>SplashScreen</code>, <code>BiometricAuth</code>,
+                    <code>BackgroundRunner</code> and <code>GoogleMaps</code>.
+                </p>
+            </header>
+            <div class="toolbar">
+                <button class="btn btn-primary" ws-onclick="StatusBarInfo">Status bar</button>
+                <button class="btn" ws-onclick="KeyboardOps">Keyboard</button>
+                <button class="btn" ws-onclick="OrientationInfo">Orientation</button>
+                <button class="btn" ws-onclick="ScreenReaderOps">Screen reader</button>
+                <button class="btn" ws-onclick="TextZoomOps">Text zoom</button>
+                <button class="btn" ws-onclick="SplashOps">Splash screen</button>
+            </div>
+            <div class="toolbar">
+                <button class="btn" ws-onclick="BiometricCheck">Biometrics</button>
+                <button class="btn" ws-onclick="BackgroundRunnerOps">Background runner</button>
+                <button class="btn" ws-onclick="GoogleMapsCheck">Google Maps</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="card-header">
+                <h2>HTTP</h2>
+                <p>
+                    <code>CapacitorHttp</code> — the native-backed HTTP client that falls
+                    back to <code>fetch</code> on the web. Requests <code>api.github.com/zen</code>
+                    (which allows CORS).
+                </p>
+            </header>
+            <div class="toolbar">
+                <button class="btn btn-primary" ws-onclick="HttpGet">GET</button>
+                <button class="btn" ws-onclick="HttpPost">POST</button>
+            </div>
+        </section>
+
+        <section class="card log-card">
+            <header class="card-header">
+                <h2>Activity log</h2>
+                <p>Every call above reports here; failures on the web are expected for native-only APIs.</p>
+            </header>
+            <pre class="log">${log}</pre>
+            <div class="toolbar">
+                <button class="btn" ws-onclick="ClearLog">Clear log</button>
+            </div>
+        </section>
+    </main>
+
+    <script type="text/javascript" src="Scripts/WebSharper.Capacitor.Sample.min.js"></script>
+</body>
+</html>

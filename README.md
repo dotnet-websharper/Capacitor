@@ -1,112 +1,193 @@
 # WebSharper Capacitor
 
-This repository provides bindings for [Capacitor](https://capacitorjs.com/) plugins to be used with [WebSharper](https://websharper.com/), enabling seamless integration of Capacitor functionality into WebSharper projects.
+[![NuGet](https://img.shields.io/nuget/v/WebSharper.Capacitor.svg)](https://www.nuget.org/packages/WebSharper.Capacitor)
 
-## Overview
+F# bindings for the [Capacitor](https://capacitorjs.com/) plugin ecosystem, for use with
+[WebSharper](https://websharper.com/). They let you build cross-platform web, Android and iOS
+apps in F# on top of Capacitor's JavaScript plugins.
 
-WebSharper Capacitor aims to bring the power of Capacitor plugins to WebSharper developers by providing F# bindings for various Capacitor plugins. These bindings facilitate the creation of modern, cross-platform web and mobile applications with WebSharper.
+The bindings are **npm-based**: every plugin is imported from its npm package, so the
+WebSharper compiler emits regular ES module imports that your bundler resolves. Versions are
+pinned to the current Capacitor 8 line (`>= 8.0.0 < 9.0.0` for the official plugins).
 
-## Currently Bound Plugins
+## Live demos
 
-The following Capacitor plugins have bindings in this repository:
+**Try it live:** [Open the sample in your browser](https://dotnet-websharper.github.io/Capacitor/)
 
-1. **BiometricAuth** - [@aparajita/capacitor-biometric-auth](https://www.npmjs.com/package/@aparajita/capacitor-biometric-auth)
-2. **ActionSheet** - [@capacitor/action-sheet](https://www.npmjs.com/package/@capacitor/action-sheet)
-3. **AppLauncher** - [@capacitor/app-launcher](https://www.npmjs.com/package/@capacitor/app-launcher)
-4. **App** - [@capacitor/app](https://www.npmjs.com/package/@capacitor/app)
-5. **BackgroundRunner** - [@capacitor/background-runner](https://www.npmjs.com/package/@capacitor/background-runner)
-6. **BarcodeScanner** - [@capacitor/barcode-scanner](https://www.npmjs.com/package/@capacitor/barcode-scanner)
-7. **Browser** - [@capacitor/browser](https://www.npmjs.com/package/@capacitor/browser)
-8. **Camera** - [@capacitor/camera](https://www.npmjs.com/package/@capacitor/camera)
-9. **Clipboard** - [@capacitor/clipboard](https://www.npmjs.com/package/@capacitor/clipboard)
-10. **Cookies** - [@capacitor/core](https://www.npmjs.com/package/@capacitor/core)
-11. **Device** - [@capacitor/device](https://www.npmjs.com/package/@capacitor/device)
-12. **Dialog** - [@capacitor/dialog](https://www.npmjs.com/package/@capacitor/dialog)
-13. **Filesystem** - [@capacitor/filesystem](https://www.npmjs.com/package/@capacitor/filesystem)
-14. **Geolocation** - [@capacitor/geolocation](https://www.npmjs.com/package/@capacitor/geolocation)
-15. **GoogleMaps** - [@capacitor/google-maps](https://www.npmjs.com/package/@capacitor/google-maps)
-16. **Haptics** - [@capacitor/haptics](https://www.npmjs.com/package/@capacitor/haptics)
-17. **Http** - [@capacitor/core](https://www.npmjs.com/package/@capacitor/core)
-18. **InAppBrowser** - [@capacitor/inappbrowser](https://www.npmjs.com/package/@capacitor/inappbrowser)
-19. **Keyboard** - [@capacitor/keyboard](https://www.npmjs.com/package/@capacitor/keyboard)
-20. **LocalNotifications** - [@capacitor/local-notifications](https://www.npmjs.com/package/@capacitor/local-notifications)
-21. **Motion** - [@capacitor/motion](https://www.npmjs.com/package/@capacitor/motion)
-22. **Network** - [@capacitor/network](https://www.npmjs.com/package/@capacitor/network)
-23. **Preferences** - [@capacitor/preferences](https://www.npmjs.com/package/@capacitor/preferences)
-24. **PushNotifications** - [@capacitor/push-notifications](https://www.npmjs.com/package/@capacitor/push-notifications)
-25. **ScreenOrientation** - [@capacitor/screen-orientation](https://www.npmjs.com/package/@capacitor/screen-orientation)
-26. **ScreenReader** - [@capacitor/screen-reader](https://www.npmjs.com/package/@capacitor/screen-reader)
-27. **Share** - [@capacitor/share](https://www.npmjs.com/package/@capacitor/share)
-28. **SplashScreen** - [@capacitor/splash-screen](https://www.npmjs.com/package/@capacitor/splash-screen)
-29. **StatusBar** - [@capacitor/status-bar](https://www.npmjs.com/package/@capacitor/status-bar)
-30. **TextZoom** - [@capacitor/text-zoom](https://www.npmjs.com/package/@capacitor/text-zoom)
-31. **Toast** - [@capacitor/toast](https://www.npmjs.com/package/@capacitor/toast)
-32. **Watch** - [@capacitor/watch](https://www.npmjs.com/package/@capacitor/watch)
+![WebSharper.Capacitor sample](docs/sample.png)
 
-## Getting Started
+The sample doubles as the binding's [test case](#running-the-test-case): it drives the whole
+bound surface from the browser (platform/device/app, preferences, cookies, clipboard,
+filesystem, camera, barcode scanner, geolocation, dialogs, toast, haptics, action sheet,
+local/push notifications, share, browser/in-app browser, app launcher, status bar, keyboard,
+screen orientation/reader, text zoom, splash screen, biometrics, background runner and HTTP),
+and reports a graceful error for the APIs that only exist in a native shell.
 
-### Prerequisites
+- [Binding source](https://github.com/dotnet-websharper/capacitor/tree/master/WebSharper.Capacitor)
+- [Sample source](https://github.com/dotnet-websharper/capacitor/tree/master/WebSharper.Capacitor.Sample)
+- [WebSharper bindings catalog](https://websharper.com/bindings)
 
-Before starting, ensure you have the following:
+## Bound plugins
 
-- Node.js and npm installed on your machine.
-- [Capacitor](https://capacitorjs.com/) set up for managing cross-platform apps.
-- [WebSharper](https://websharper.com/) used for building F#-based web applications.
-- A project structure ready to integrate Capacitor and WebSharper.
+| Namespace | npm package | Binding |
+|---|---|---|
+| `BiometricAuth` | [`@aparajita/capacitor-biometric-auth`](https://www.npmjs.com/package/@aparajita/capacitor-biometric-auth) | `Capacitor.BiometricAuth` |
+| `ActionSheet` | [`@capacitor/action-sheet`](https://www.npmjs.com/package/@capacitor/action-sheet) | `Capacitor.ActionSheet` |
+| `AppLauncher` | [`@capacitor/app-launcher`](https://www.npmjs.com/package/@capacitor/app-launcher) | `Capacitor.AppLauncher` |
+| `App` | [`@capacitor/app`](https://www.npmjs.com/package/@capacitor/app) | `Capacitor.App` |
+| `BackgroundRunner` | [`@capacitor/background-runner`](https://www.npmjs.com/package/@capacitor/background-runner) | `Capacitor.BackgroundRunner` |
+| `BarcodeScanner` | [`@capacitor/barcode-scanner`](https://www.npmjs.com/package/@capacitor/barcode-scanner) | `Capacitor.BarcodeScanner` |
+| `Browser` | [`@capacitor/browser`](https://www.npmjs.com/package/@capacitor/browser) | `Capacitor.Browser` |
+| `Camera` | [`@capacitor/camera`](https://www.npmjs.com/package/@capacitor/camera) | `Capacitor.Camera` |
+| `Clipboard` | [`@capacitor/clipboard`](https://www.npmjs.com/package/@capacitor/clipboard) | `Capacitor.Clipboard` |
+| `Cookies` | [`@capacitor/core`](https://www.npmjs.com/package/@capacitor/core) | `Capacitor.Cookies` |
+| `Device` | [`@capacitor/device`](https://www.npmjs.com/package/@capacitor/device) | `Capacitor.Device` |
+| `Dialog` | [`@capacitor/dialog`](https://www.npmjs.com/package/@capacitor/dialog) | `Capacitor.Dialog` |
+| `Filesystem` | [`@capacitor/filesystem`](https://www.npmjs.com/package/@capacitor/filesystem) | `Capacitor.Filesystem` |
+| `Geolocation` | [`@capacitor/geolocation`](https://www.npmjs.com/package/@capacitor/geolocation) | `Capacitor.Geolocation` |
+| `GoogleMaps` | [`@capacitor/google-maps`](https://www.npmjs.com/package/@capacitor/google-maps) | `Capacitor.GoogleMaps` |
+| `Haptics` | [`@capacitor/haptics`](https://www.npmjs.com/package/@capacitor/haptics) | `Capacitor.Haptics` |
+| `Http` | [`@capacitor/core`](https://www.npmjs.com/package/@capacitor/core) | `Capacitor.Http` |
+| `InAppBrowser` | [`@capacitor/inappbrowser`](https://www.npmjs.com/package/@capacitor/inappbrowser) | `Capacitor.InAppBrowser` |
+| `Keyboard` | [`@capacitor/keyboard`](https://www.npmjs.com/package/@capacitor/keyboard) | `Capacitor.Keyboard` |
+| `LocalNotifications` | [`@capacitor/local-notifications`](https://www.npmjs.com/package/@capacitor/local-notifications) | `Capacitor.LocalNotifications` |
+| `Motion` | [`@capacitor/motion`](https://www.npmjs.com/package/@capacitor/motion) | `Capacitor.Motion` |
+| `Network` | [`@capacitor/network`](https://www.npmjs.com/package/@capacitor/network) | `Capacitor.Network` |
+| `Preferences` | [`@capacitor/preferences`](https://www.npmjs.com/package/@capacitor/preferences) | `Capacitor.Preferences` |
+| `PushNotifications` | [`@capacitor/push-notifications`](https://www.npmjs.com/package/@capacitor/push-notifications) | `Capacitor.PushNotifications` |
+| `ScreenOrientation` | [`@capacitor/screen-orientation`](https://www.npmjs.com/package/@capacitor/screen-orientation) | `Capacitor.ScreenOrientation` |
+| `ScreenReader` | [`@capacitor/screen-reader`](https://www.npmjs.com/package/@capacitor/screen-reader) | `Capacitor.ScreenReader` |
+| `Share` | [`@capacitor/share`](https://www.npmjs.com/package/@capacitor/share) | `Capacitor.Share` |
+| `SplashScreen` | [`@capacitor/splash-screen`](https://www.npmjs.com/package/@capacitor/splash-screen) | `Capacitor.SplashScreen` |
+| `StatusBar` | [`@capacitor/status-bar`](https://www.npmjs.com/package/@capacitor/status-bar) | `Capacitor.StatusBar` |
+| `TextZoom` | [`@capacitor/text-zoom`](https://www.npmjs.com/package/@capacitor/text-zoom) | `Capacitor.TextZoom` |
+| `Toast` | [`@capacitor/toast`](https://www.npmjs.com/package/@capacitor/toast) | `Capacitor.Toast` |
+| `Watch` | [`@capacitor/watch`](https://www.npmjs.com/package/@capacitor/watch) | `Capacitor.Watch` |
 
-### Installation 
+The `@capacitor/core` runtime is bound as `CapacitorCore` (`GetPlatform`, `IsNativePlatform`,
+`IsPluginAvailable`, `ConvertFileSrc`).
 
-1. Initialize a Capacitor project:
+## Install
 
-   ```bash
-   npm init                # Initialize a new Node.js project
-   npm install             # Install default dependencies
-   npm i @capacitor/core   # Install Capacitor core library
-   npm i -D @capacitor/cli # Install Capacitor CLI as a dev dependency
-   npx cap init "YourApp" com.example.yourapp --web-dir wwwroot/dist # Initialize Capacitor in the project
-   ```
+```sh
+dotnet add package WebSharper.Capacitor
+# or
+nuget install WebSharper.Capacitor
+```
 
-2. Add the WebSharper Capacitor NuGet package:
+Install the npm packages of the plugins you actually use, for example:
 
-   ```bash
-   dotnet add package WebSharper.Capacitor --version 8.0.0.494-beta1
-   ```
+```sh
+npm install @capacitor/core @capacitor/camera @capacitor/preferences
+```
 
-3. Add Android platform:
+The binding declares them as npm dependencies (`>= reference < next-major`), so a
+WebSharper-aware bundler can also resolve them automatically.
 
-   ```bash
-   npm i @capacitor/android  # Install Capacitor Android platform support
-   npx cap add android       # Add the Android platform to your project
-   ```
+## Usage
 
-4. Add iOS platform:
+```fsharp
+open WebSharper
+open WebSharper.JavaScript
+open WebSharper.Capacitor
 
-   ```bash
-   npm i @capacitor/ios      # Install Capacitor iOS platform support
-   npx cap add ios           # Add the iOS platform to your project
-   ```
+[<JavaScript>]
+module Demo =
+    let takePhoto () = promise {
+        let options = Camera.TakePhotoOptions(Quality = 80, CorrectOrientation = true)
+        let! photo = Capacitor.Camera.TakePhoto(options)
+        return photo.WebPath
+    }
 
-5. Choose and install the Capacitor plugins you want to use. For example, to use the **Camera** plugin:
+    let store (value: string) =
+        Capacitor.Preferences.Set(Preferences.SetOptions(key = "auth_token", value = value))
 
-   ```bash
-   npm i @capacitor/camera
-   ```
+    let platform () = CapacitorCore.GetPlatform()
+```
 
-6. Build your project:
+Notes:
 
-   ```bash
-   npm i vite                # Install Vite for building your web assets
-   npx vite build            # Build your web project with Vite
-   ```
+- Required configuration fields are positional constructor arguments
+  (`Preferences.SetOptions(key = ..., value = ...)`); everything else is an optional
+  settable property (`Camera.TakePhotoOptions(Quality = 80)`).
+- Every plugin method returns a WebSharper `Promise<'T>`; use `promise { ... }` or
+  `.Then(onFulfilled, onRejected)`.
+- On the web, plugins with a web implementation work in the browser; the rest reject with
+  `"Not implemented on web."` — handle that in your UI.
+- Some plugins need Capacitor configuration (`capacitor.config.json`). The binding exposes
+  the matching `PluginsConfig` types in each namespace but does not write the JSON for you.
 
-7. Sync configuration:
+## Running the test case
 
-   ```bash
-   npx cap sync              # Sync Capacitor configuration and plugins
-   ```
+The sample is the test case and the live demo. It is a static SPA (`net10.0`, bundled with
+esbuild), so it exercises the binding in a real browser without a device.
 
-### Notes
+```sh
+cd WebSharper.Capacitor.Sample
+npm install
+dotnet build -c Release          # runs WebSharper, then esbuild into ../dist
+dotnet serve -d ../dist -p 8080  # serve it
+```
 
-- Ensure your Capacitor project is correctly configured with `capacitor.config.json`.
-- The WebSharper Capacitor package provides bindings for seamless integration but still requires Capacitor plugins to be installed via `npm`.
-- Check out sample usage of plugins in the `WebSharper.Capacitor.Sample` directory.
+Then open <http://localhost:8080/>. Press the buttons in each card; the activity log reports
+the result of every call, including the expected "not available on this platform" errors for
+native-only APIs.
+
+To run it as an Android app:
+
+```sh
+cd WebSharper.Capacitor.Sample
+npx cap sync android
+cd android
+./gradlew assembleDebug
+```
+
+`capacitor.config.json` points `webDir` at `dist`.
+
+## Build from source
+
+Prerequisites: the .NET 11 SDK (the WebSharper 11 compiler runs on it), Node.js and npm.
+
+```sh
+dotnet tool restore
+dotnet paket restore
+dotnet build WebSharper.Capacitor.Sample/WebSharper.Capacitor.Sample.fsproj -c Release
+```
+
+Or use the build script (it restores the tools, refreshes the build-script, then runs FAKE):
+
+```sh
+./build CI-Release
+```
+
+## Pack
+
+```sh
+./build WS-Package
+# or
+WSPackageFolder=/tmp/pkg dotnet fsi ./build.fsx -t WS-Package
+```
+
+This produces `WebSharper.Capacitor` with the binding dll, XML docs and the WebSharper 11
+metadata sidecar.
+
+## Deployment
+
+`.github/workflows/ghpages.yml` builds the sample on every push to `master` and deploys the
+generated `dist/` to the `gh-pages` branch, which serves
+<https://dotnet-websharper.github.io/Capacitor/>. `.github/workflows/build.yml` builds the
+Android APK and uploads it as an artifact.
+
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `WebSharper.Capacitor/` | The WIG binding (`Main.fs`), `netstandard2.0`, npm-based |
+| `WebSharper.Capacitor.Sample/` | `net10.0` esbuild SPA sample/test case and the Capacitor Android project |
+| `nuget/` | Paket package template |
+| `docs/` | README screenshot |
+| `build.fsx`, `build.sh`, `build.cmd` | Build/pack entry points |
+
+## License
+
+Apache 2.0 — see [LICENSE.md](LICENSE.md).
