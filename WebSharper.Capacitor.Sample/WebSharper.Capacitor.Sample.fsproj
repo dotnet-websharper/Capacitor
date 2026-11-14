@@ -1,15 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <WebSharperSourceMap>false</WebSharperSourceMap>
+    <!-- Paket surfaces WebSharper's transitive System.Reflection.Emit.Lightweight reference. -->
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Client.fs" />
-    <Compile Include="Startup.fs" />
+    <None Include="package.json" />
+    <None Include="esbuild.config.mjs" />
     <None Include="wsconfig.json" />
+    <Content Include="index.html" />
+    <Content Include="site.css" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\WebSharper.Capacitor\WebSharper.Capacitor.fsproj" />
   </ItemGroup>
+
+  <Target Name="NpmInstall" BeforeTargets="ESBuildBundle" Inputs="package.json" Outputs="node_modules/.package-lock.json">
+    <Exec Command="npm install" />
+  </Target>
+
+  <Target Name="ESBuildBundle" AfterTargets="WebSharperCompile">
+    <Exec Command="node ./esbuild.config.mjs" />
+  </Target>
+
   <Import Project="..\.paket\Paket.Restore.targets" />
+
 </Project>

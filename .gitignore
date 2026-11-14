@@ -1,11 +1,11 @@
 /.vs
 /*.suo
 /*.Tests/Content/
-/*.Sample/Content/
 /bin
 /obj
 /node_modules
 /build/
+/dist/
 /packages/
 /tools/packages/
 /.fake/
@@ -18,7 +18,10 @@ websharper.log
 /WebSharper.Capacitor*/obj
 /WebSharper.Capacitor*/node*
 /WebSharper.Capacitor*/Properties
-/WebSharper.Capacitor*/wwwroot/Content
-/WebSharper.Capacitor*/wwwroot/dist
+/WebSharper.Capacitor*/build
+/WebSharper.Capacitor*/dist
 /WebSharper.Capacitor*/.vs
-
+/WebSharper.Capacitor.Sample/android/.gradle
+/WebSharper.Capacitor.Sample/android/app/build
+/WebSharper.Capacitor.Sample/android/build
+/WebSharper.Capacitor.Sample/android/local.properties
